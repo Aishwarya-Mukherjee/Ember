@@ -60,12 +60,12 @@ export default function LandingPage() {
         loop
         muted
         playsInline
-        className="absolute inset-0 h-full w-full object-cover z-0 opacity-30 mix-blend-multiply contrast-125 grayscale sepia hue-rotate-[190deg] saturate-200"
+        className="absolute inset-0 h-full w-full object-cover z-0 opacity-60 mix-blend-multiply contrast-125 grayscale sepia hue-rotate-[190deg] saturate-200"
         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260715_082433_69699cf8-444b-4484-93cc-053e57896dfd.mp4"
       />
       
       {/* Dark overlay with custom radial glow behind the hero visual */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-slate-50/95 via-slate-50/80 to-slate-50/30 z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-slate-50/85 via-slate-50/65 to-slate-50/20 z-0 pointer-events-none" />
       <div className="absolute right-[-10%] top-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] glow-orb-primary opacity-20 blur-[120px] rounded-full z-0 pointer-events-none" />
       <div className="absolute right-[10%] bottom-[10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] glow-orb-secondary opacity-15 blur-[150px] rounded-full z-0 pointer-events-none" />
 
