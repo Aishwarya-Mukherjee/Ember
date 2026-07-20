@@ -52,7 +52,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-black font-sans text-white">
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-slate-50 font-sans text-slate-900">
       
       {/* Background Video */}
       <video
@@ -60,12 +60,12 @@ export default function LandingPage() {
         loop
         muted
         playsInline
-        className="absolute inset-0 h-full w-full object-cover z-0 opacity-45"
+        className="absolute inset-0 h-full w-full object-cover z-0 opacity-15"
         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260715_082433_69699cf8-444b-4484-93cc-053e57896dfd.mp4"
       />
       
       {/* Dark overlay with custom radial glow behind the hero visual */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/75 to-transparent z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-slate-50/95 via-slate-50/80 to-slate-50/30 z-0 pointer-events-none" />
       <div className="absolute right-[-10%] top-[-10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] glow-orb-primary opacity-20 blur-[120px] rounded-full z-0 pointer-events-none" />
       <div className="absolute right-[10%] bottom-[10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] glow-orb-secondary opacity-15 blur-[150px] rounded-full z-0 pointer-events-none" />
 
@@ -77,7 +77,7 @@ export default function LandingPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center gap-6"
+            className="fixed inset-0 z-50 bg-slate-50 flex flex-col items-center justify-center gap-6"
           >
             <div className="relative flex items-center justify-center w-36 h-36">
               {/* Circular glow pulse */}
@@ -87,9 +87,9 @@ export default function LandingPage() {
                 className="absolute inset-0 bg-cyan-500/20 rounded-full blur-2xl"
               />
               {/* Radial ring pulse */}
-              <div className="absolute w-20 h-20 rounded-full border border-cyan-500/30 animate-ping" />
+              <div className="absolute w-20 h-20 rounded-full border border-cyan-600/30 animate-ping" />
               
-              <svg className="w-24 h-24 text-cyan-400 z-10" viewBox="0 0 100 40">
+              <svg className="w-24 h-24 text-cyan-600 z-10" viewBox="0 0 100 40">
                 <motion.path
                   d="M10,20 L35,20 L42,5 L50,35 L58,15 L63,20 L90,20"
                   fill="none"
@@ -108,7 +108,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 0.7, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xs font-semibold tracking-[0.25em] text-cyan-400 uppercase animate-pulse"
+              className="text-xs font-semibold tracking-[0.25em] text-cyan-600 uppercase animate-pulse"
             >
               Connecting Health Loop
             </motion.span>
@@ -126,21 +126,21 @@ export default function LandingPage() {
         
         {/* Left: Custom SVG Logo */}
         <div className="flex items-center">
-          <svg className="w-8 h-8 md:w-9 md:h-9 fill-white" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+          <svg className="w-8 h-8 md:w-9 md:h-9 fill-cyan-600" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
             <path d="M 128 128 C 198.692 128 256 185.308 256 256 L 151.883 256 C 149.812 220.307 120.213 192 84 192 C 47.787 192 18.188 220.307 16.117 256 L 0 256 C 0 185.308 57.308 128 128 128 Z M 104.117 0 C 106.188 35.694 135.787 64 172 64 C 208.213 64 237.812 35.694 239.883 0 L 256 0 C 256 70.692 198.692 128 128 128 C 57.308 128 0 70.692 0 0 Z" />
           </svg>
         </div>
 
         {/* Center: Desktop Nav Pill */}
         <div className="hidden md:flex liquid-glass rounded-full px-8 py-3 items-center gap-8">
-          <Link href="/" className="text-sm font-medium text-white transition-opacity hover:opacity-80">Home</Link>
-          <button onClick={handlePortalTransition} className="text-sm font-medium text-white/70 hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 outline-none">Our Approach</button>
-          <button onClick={handlePortalTransition} className="text-sm font-medium text-white/70 hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 outline-none">Healing Methods</button>
+          <Link href="/" className="text-sm font-medium text-slate-800 transition-opacity hover:text-cyan-600 hover:opacity-80">Home</Link>
+          <button onClick={handlePortalTransition} className="text-sm font-medium text-slate-600 hover:text-cyan-600 transition-colors cursor-pointer bg-transparent border-none p-0 outline-none">Our Approach</button>
+          <button onClick={handlePortalTransition} className="text-sm font-medium text-slate-600 hover:text-cyan-600 transition-colors cursor-pointer bg-transparent border-none p-0 outline-none">Healing Methods</button>
         </div>
 
         {/* Right: Desktop Avatar */}
-        <button onClick={handlePortalTransition} className="hidden md:flex liquid-glass h-10 w-10 rounded-full items-center justify-center cursor-pointer hover:bg-white/20 transition-all hover:scale-105 active:scale-95 bg-transparent border-none outline-none">
-          <CircleUserRound className="h-5 w-5 text-white/80" strokeWidth={1.5} />
+        <button onClick={handlePortalTransition} className="hidden md:flex liquid-glass h-10 w-10 rounded-full items-center justify-center cursor-pointer hover:bg-cyan-50 transition-all hover:scale-105 active:scale-95 bg-transparent border-none outline-none">
+          <CircleUserRound className="h-5 w-5 text-slate-600" strokeWidth={1.5} />
         </button>
 
         {/* Right: Mobile Menu Toggle */}
@@ -149,7 +149,7 @@ export default function LandingPage() {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
-           <Menu className={`absolute h-5 w-5 text-white transition-all duration-300 ${menuOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
+           <Menu className={`absolute h-5 w-5 text-slate-800 transition-all duration-300 ${menuOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
            <X className={`absolute h-5 w-5 text-white transition-all duration-300 ${menuOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`} />
         </button>
 
@@ -163,18 +163,18 @@ export default function LandingPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="fixed inset-0 z-10 flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl md:hidden"
+            className="fixed inset-0 z-10 flex flex-col items-center justify-center bg-white/95 backdrop-blur-xl md:hidden"
           >
               <div className="flex flex-col items-center gap-8">
-                <Link href="/" onClick={() => setMenuOpen(false)} className="text-2xl font-medium text-white">Home</Link>
-                <button onClick={(e) => { setMenuOpen(false); handlePortalTransition(e); }} className="text-2xl font-medium text-white/80 hover:text-white transition-colors cursor-pointer bg-transparent border-none outline-none">Our Approach</button>
-                <button onClick={(e) => { setMenuOpen(false); handlePortalTransition(e); }} className="text-2xl font-medium text-white/80 hover:text-white transition-colors cursor-pointer bg-transparent border-none outline-none">Healing Methods</button>
+                <Link href="/" onClick={() => setMenuOpen(false)} className="text-2xl font-medium text-slate-900">Home</Link>
+                <button onClick={(e) => { setMenuOpen(false); handlePortalTransition(e); }} className="text-2xl font-medium text-slate-600 hover:text-white transition-colors cursor-pointer bg-transparent border-none outline-none">Our Approach</button>
+                <button onClick={(e) => { setMenuOpen(false); handlePortalTransition(e); }} className="text-2xl font-medium text-slate-600 hover:text-white transition-colors cursor-pointer bg-transparent border-none outline-none">Healing Methods</button>
                 
                 <button onClick={(e) => { setMenuOpen(false); handlePortalTransition(e); }} className="flex flex-col items-center gap-2 mt-4 cursor-pointer bg-transparent border-none outline-none">
                   <div className="liquid-glass h-12 w-12 rounded-full flex items-center justify-center">
-                     <CircleUserRound className="h-6 w-6 text-white/80" strokeWidth={1.5} />
+                     <CircleUserRound className="h-6 w-6 text-slate-600" strokeWidth={1.5} />
                   </div>
-                  <span className="text-sm font-light text-white/60">Account</span>
+                  <span className="text-sm font-light text-slate-500">Account</span>
                 </button>
               </div>
           </motion.div>
@@ -218,8 +218,8 @@ export default function LandingPage() {
                 <Image src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 2" width={24} height={24} unoptimized className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
                 <Image src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 3" width={24} height={24} unoptimized className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
               </div>
-              <span className="text-xs sm:text-sm font-light text-white/80 pr-1 flex items-center gap-1.5 relative z-10">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+              <span className="text-xs sm:text-sm font-light text-slate-600 pr-1 flex items-center gap-1.5 relative z-10">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-500 animate-pulse" />
                 Our path to natural wellness
               </span>
             </motion.div>
@@ -227,16 +227,16 @@ export default function LandingPage() {
             {/* Title */}
             <motion.h1 
               variants={itemVariants}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.05] text-white tracking-[-0.05em]"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.05] text-slate-900 tracking-[-0.05em]"
             >
               Heal Your Body<br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">Naturally</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-teal-500 to-emerald-600">Naturally</span>
             </motion.h1>
 
             {/* Subtitle */}
             <motion.p 
               variants={itemVariants}
-              className="mt-6 text-base sm:text-lg md:text-xl font-light text-white/70 max-w-lg leading-relaxed"
+              className="mt-6 text-base sm:text-lg md:text-xl font-light text-slate-600 max-w-lg leading-relaxed"
             >
               Experience care loop’s continuous, intelligent health companion. Bridging the gap between doctor visits with personalized daily wellness.
             </motion.p>
@@ -245,7 +245,7 @@ export default function LandingPage() {
             <motion.div variants={itemVariants} className="mt-8 sm:mt-10">
               <button 
                 onClick={handlePortalTransition}
-                className="group liquid-glass rounded-full px-7 py-3.5 text-sm font-medium text-white flex items-center gap-2 hover:bg-white/15 transition-all duration-300 hover:scale-[1.03] active:scale-95 shadow-[0_0_30px_rgba(6,182,212,0.15)] hover:shadow-[0_0_40px_rgba(6,182,212,0.3)] cursor-pointer bg-transparent border-none outline-none"
+                className="group rounded-full bg-cyan-600 hover:bg-cyan-700 px-7 py-3.5 text-sm font-medium text-white flex items-center gap-2 transition-all duration-300 hover:scale-[1.03] active:scale-95 shadow-[0_8px_20px_rgba(6,182,212,0.25)] cursor-pointer outline-none border-none"
               >
                 Begin Your Journey
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -330,8 +330,8 @@ export default function LandingPage() {
                 <Heart className="w-4 h-4 fill-pink-500" />
               </motion.div>
               <div className="flex flex-col text-left">
-                <span className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Heart Rate</span>
-                <span className="text-xs font-bold text-white tracking-wide">72 bpm</span>
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Heart Rate</span>
+                <span className="text-xs font-bold text-slate-800 tracking-wide">72 bpm</span>
               </div>
             </motion.div>
 
@@ -345,8 +345,8 @@ export default function LandingPage() {
                 <Activity className="w-4 h-4" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Vitals Status</span>
-                <span className="text-xs font-bold text-emerald-400 tracking-wide">Optimal</span>
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Vitals Status</span>
+                <span className="text-xs font-bold text-emerald-600 tracking-wide">Optimal</span>
               </div>
             </motion.div>
 
@@ -360,8 +360,8 @@ export default function LandingPage() {
                 <BrainCircuit className="w-4 h-4" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Cognitive</span>
-                <span className="text-xs font-bold text-white tracking-wide">Active</span>
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Cognitive</span>
+                <span className="text-xs font-bold text-slate-800 tracking-wide">Active</span>
               </div>
             </motion.div>
 
@@ -371,12 +371,12 @@ export default function LandingPage() {
               transition={{ repeat: Infinity, duration: 6.2, ease: "easeInOut", delay: 1.8 }}
               className="absolute bottom-[8%] right-[2%] sm:right-[8%] z-20 liquid-glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-lg"
             >
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-600">
                 <Pill className="w-4 h-4" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-[9px] text-white/50 font-bold uppercase tracking-wider">PillGuard</span>
-                <span className="text-xs font-bold text-white tracking-wide">100% Adhere</span>
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">PillGuard</span>
+                <span className="text-xs font-bold text-slate-800 tracking-wide">100% Adhere</span>
               </div>
             </motion.div>
 
@@ -389,29 +389,29 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as [number, number, number, number], delay: 0.5 }}
-          className="flex flex-wrap items-end gap-10 sm:gap-16 md:gap-24 pt-10 border-t border-white/10 pb-4 mt-8"
+          className="flex flex-wrap items-end gap-10 sm:gap-16 md:gap-24 pt-10 border-t border-slate-200 pb-4 mt-8"
         >
           
           {/* Stat 1 */}
           <div className="flex flex-col gap-2">
             <div className="relative w-5 h-5 flex flex-wrap content-between justify-between mb-2">
               {[...Array(9)].map((_, i) => (
-                <div key={i} className={`w-[2.5px] h-[2.5px] bg-white/60 ${i === 4 ? 'opacity-0' : ''}`} />
+                <div key={i} className={`w-[2.5px] h-[2.5px] bg-cyan-600/40 ${i === 4 ? 'opacity-0' : ''}`} />
               ))}
             </div>
-            <span className="text-2xl sm:text-3xl font-normal text-white tracking-tight">48 Hours</span>
-            <span className="text-xs sm:text-sm font-light text-white/60">Initial Consultation</span>
+            <span className="text-2xl sm:text-3xl font-normal text-slate-800 tracking-tight">48 Hours</span>
+            <span className="text-xs sm:text-sm font-light text-slate-500">Initial Consultation</span>
           </div>
 
           {/* Stat 2 */}
           <div className="flex flex-col gap-2">
             <div className="grid grid-cols-3 gap-[2px] w-5 h-5 mb-2">
                {[...Array(9)].map((_, i) => (
-                 <div key={i} className={`w-[4px] h-[4px] rounded-[1px] ${(i % 2 === 0) ? 'bg-white/60' : 'bg-white/0'}`} />
+                 <div key={i} className={`w-[4px] h-[4px] rounded-[1px] ${(i % 2 === 0) ? 'bg-cyan-600/40' : 'bg-white/0'}`} />
                ))}
             </div>
-            <span className="text-2xl sm:text-3xl font-normal text-white tracking-tight">500+ Sessions</span>
-            <span className="text-xs sm:text-sm font-light text-white/60">Healing Sessions</span>
+            <span className="text-2xl sm:text-3xl font-normal text-slate-800 tracking-tight">500+ Sessions</span>
+            <span className="text-xs sm:text-sm font-light text-slate-500">Healing Sessions</span>
           </div>
 
         </motion.div>
@@ -419,7 +419,7 @@ export default function LandingPage() {
       </main>
 
       {/* Problem Section */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 md:px-16 lg:px-20 py-24 md:py-32 border-t border-white/5">
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 md:px-16 lg:px-20 py-24 md:py-32 border-t border-slate-200">
         
         {/* Problem Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
@@ -437,7 +437,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-            className="mt-4 text-base sm:text-lg font-light text-white/60 leading-relaxed"
+            className="mt-4 text-base sm:text-lg font-light text-slate-500 leading-relaxed"
           >
             Infrequent clinic visits fail to capture daily realities. Ember addresses the four critical points of patient self-care failure.
           </motion.p>
@@ -451,7 +451,7 @@ export default function LandingPage() {
               title: "Missed Medications",
               desc: "Patients struggle to manage complex daily regimens, leading to missed doses and critical adherence lapses.",
               color: "from-pink-500/20 to-rose-500/20",
-              iconColor: "text-pink-400",
+              iconColor: "text-pink-600",
               delay: 0
             },
             {
@@ -459,7 +459,7 @@ export default function LandingPage() {
               title: "Untracked Symptoms",
               desc: "Daily symptom flares and vital trends go unrecorded, leaving doctors with incomplete patient histories.",
               color: "from-cyan-500/20 to-teal-500/20",
-              iconColor: "text-cyan-400",
+              iconColor: "text-cyan-600",
               delay: 0.15
             },
             {
@@ -467,7 +467,7 @@ export default function LandingPage() {
               title: "High Friction",
               desc: "Traditional health tracking is tedious and manual, causing patients to abandon logging in a few days.",
               color: "from-blue-500/20 to-indigo-500/20",
-              iconColor: "text-blue-400",
+              iconColor: "text-blue-600",
               delay: 0.3
             },
             {
@@ -475,7 +475,7 @@ export default function LandingPage() {
               title: "Data Disconnect",
               desc: "A massive clinical care gap exists between daily home realities and infrequent monthly check-ins.",
               color: "from-emerald-500/20 to-teal-500/20",
-              iconColor: "text-emerald-400",
+              iconColor: "text-emerald-600",
               delay: 0.45
             }
           ].map((card, idx) => {
@@ -487,17 +487,17 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, ease: "easeOut", delay: card.delay }}
-                className="liquid-glass group rounded-3xl p-6 flex flex-col justify-between h-72 hover:border-cyan-500/30 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                className="liquid-glass group rounded-3xl p-6 flex flex-col justify-between h-72 hover:border-cyan-200 hover:bg-white/60 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
               >
                 <div className="flex flex-col gap-4">
                   <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.color} flex items-center justify-center ${card.iconColor}`}>
                     <Icon className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-semibold tracking-tight text-white group-hover:text-cyan-400 transition-colors">
+                  <h3 className="text-lg font-semibold tracking-tight text-slate-900 group-hover:text-cyan-600 transition-colors">
                     {card.title}
                   </h3>
                 </div>
-                <p className="text-sm font-light leading-relaxed text-white/60">
+                <p className="text-sm font-light leading-relaxed text-slate-500">
                   {card.desc}
                 </p>
               </motion.div>
@@ -515,11 +515,11 @@ export default function LandingPage() {
         }
         
         .liquid-glass {
-          background: rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.05);
         }
 
         .glow-orb-primary {
