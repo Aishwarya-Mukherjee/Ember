@@ -64,11 +64,11 @@ export default function DoctorCanvas({ onListeningChange, onSelectAction }: Doct
   };
 
   const CSS = `
-    .dc-stage { position:relative; width:100%; max-width:600px; height:460px; display:flex; align-items:flex-end; justify-content:center; margin-bottom:100px; }
+    .dc-stage { position:relative; width:100%; max-width:640px; height:560px; display:flex; align-items:flex-end; justify-content:center; margin-bottom:100px; }
     .dc-ambient { position:absolute; top:20px; width:260px; height:260px; border-radius:50%; background:radial-gradient(circle, rgba(6,182,212,0.35), transparent 70%); filter:blur(10px); opacity:.7; transition:opacity .4s ease, transform .6s ease; pointer-events:none; }
     .dc-stage.dc-active .dc-ambient { opacity:1; transform:scale(1.15); }
     
-    .dc-wrap { position:relative; width:100%; height:400px; }
+    .dc-wrap { position:relative; width:100%; height:500px; }
     
     .dc-shadow { position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:150px; height:22px; background:radial-gradient(ellipse, rgba(22,78,99,0.28), transparent 70%); border-radius:50%; filter:blur(2px); pointer-events:none; }
     
@@ -106,7 +106,7 @@ export default function DoctorCanvas({ onListeningChange, onSelectAction }: Doct
     /* SPEECH BUBBLE */
     .dc-bubble-wrap {
       position: absolute;
-      bottom: 250px;
+      bottom: calc(min(640px, 100vw) * 0.55);
       left: 50%;
       width: min(360px, 90vw);
       margin-left: calc(-0.5 * min(360px, 90vw));
@@ -115,6 +115,11 @@ export default function DoctorCanvas({ onListeningChange, onSelectAction }: Doct
       transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       pointer-events: none;
       z-index: 10;
+    }
+    @media (min-width: 768px) {
+      .dc-bubble-wrap {
+        bottom: calc(min(640px, 100vw) * 0.50);
+      }
     }
     .dc-bubble-wrap.dc-show {
       opacity: 1;
@@ -314,12 +319,12 @@ export default function DoctorCanvas({ onListeningChange, onSelectAction }: Doct
 
           {/* IDLE POSE */}
           <div className={`dc-pose${!listening ? " dc-visible" : ""}`}>
-            <img src="/Bot.png" alt="AI Companion" className="w-full max-w-[640px] aspect-square object-contain drop-shadow-2xl translate-y-[30%]" />
+            <img src="/Bot.png" alt="AI Companion" className="w-[100vw] md:w-[640px] max-w-[640px] aspect-square object-contain drop-shadow-2xl translate-y-[20%] md:translate-y-[25%]" />
           </div>
 
           {/* LISTENING POSE */}
           <div className={`dc-pose${listening ? " dc-visible" : ""}`}>
-            <img src="/Bot.png" alt="AI Companion Listening" className="w-full max-w-[640px] aspect-square object-contain drop-shadow-2xl translate-y-[30%] scale-105 transition-transform duration-500 brightness-110" />
+            <img src="/Bot.png" alt="AI Companion Listening" className="w-[100vw] md:w-[640px] max-w-[640px] aspect-square object-contain drop-shadow-2xl translate-y-[20%] md:translate-y-[25%] scale-105 transition-transform duration-500 brightness-110" />
           </div>
 
           <div className="dc-mic-zone">

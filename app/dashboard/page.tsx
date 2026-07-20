@@ -167,7 +167,7 @@ function DashboardContent() {
             </div>
 
             {/* CENTER COLUMN */}
-            <div className="w-full xl:col-span-6 flex flex-col items-center justify-start pt-12 xl:pt-32 min-h-[400px] xl:min-h-[500px]">
+            <div className="w-full xl:col-span-6 flex flex-col items-center justify-start pt-32 xl:pt-48 min-h-[400px] xl:min-h-[500px]">
               <div className="relative w-full flex flex-col items-center">
                 <DoctorCanvas onSelectAction={(act) => setActiveModal(act)} />
 
