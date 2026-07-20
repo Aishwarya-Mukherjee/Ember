@@ -60,7 +60,7 @@ export default function LandingPage() {
         loop
         muted
         playsInline
-        className="absolute inset-0 h-full w-full object-cover z-0 opacity-15"
+        className="absolute inset-0 h-full w-full object-cover z-0 opacity-30 mix-blend-multiply contrast-125 grayscale sepia hue-rotate-[190deg] saturate-200"
         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260715_082433_69699cf8-444b-4484-93cc-053e57896dfd.mp4"
       />
       
