@@ -5,9 +5,10 @@ import { X, Sparkles } from "lucide-react";
 
 interface DoctorCanvasProps {
   onListeningChange?: (listening: boolean) => void;
+  onSelectAction?: (action: string) => void;
 }
 
-export default function DoctorCanvas({ onListeningChange }: DoctorCanvasProps) {
+export default function DoctorCanvas({ onListeningChange, onSelectAction }: DoctorCanvasProps) {
   const [listening, setListening] = useState(false);
   const [tapping, setTapping] = useState(false);
 
@@ -15,6 +16,12 @@ export default function DoctorCanvas({ onListeningChange }: DoctorCanvasProps) {
   const [bubbleState, setBubbleState] = useState<'hidden' | 'entering' | 'typing' | 'done'>('hidden');
   const [displayedText, setDisplayedText] = useState("");
   const fullText = "👋 Hi Meera,\n\nI'm Ember, your AI Health Companion.\n\nI've analyzed today's health summary.\n\nEverything looks stable.\nWould you like to do a quick check-in?";
+
+  const handleChipClick = (actionText: string) => {
+    setDisplayedText(`Got it! Opening ${actionText} mode...`);
+    setBubbleState('done');
+    onSelectAction?.(actionText);
+  };
 
   useEffect(() => {
     // Wait for the doctor entrance animation, then show the bubble
@@ -40,12 +47,6 @@ export default function DoctorCanvas({ onListeningChange }: DoctorCanvasProps) {
     }
   }, [bubbleState]);
 
-  useEffect(() => {
-    if (listening) {
-      setBubbleState('hidden');
-    }
-  }, [listening]);
-
   const toggle = () => {
     setTapping(false);
     requestAnimationFrame(() => {
@@ -54,6 +55,9 @@ export default function DoctorCanvas({ onListeningChange }: DoctorCanvasProps) {
     });
     setListening((prev) => {
       const next = !prev;
+      if (next) {
+        setBubbleState('hidden');
+      }
       onListeningChange?.(next);
       return next;
     });
@@ -299,10 +303,10 @@ export default function DoctorCanvas({ onListeningChange }: DoctorCanvasProps) {
                 </div>
 
                 <div className={`dc-chips ${bubbleState === 'done' ? 'dc-show' : ''}`}>
-                  <div className="dc-chip">✓ Start Check-in</div>
-                  <div className="dc-chip">💊 Medications</div>
-                  <div className="dc-chip">📊 My Health</div>
-                  <div className="dc-chip">🎤 Ask Anything</div>
+                  <button className="dc-chip" onClick={() => handleChipClick("Check-in")}>✓ Start Check-in</button>
+                  <button className="dc-chip" onClick={() => handleChipClick("Medications")}>💊 Medications</button>
+                  <button className="dc-chip" onClick={() => handleChipClick("My Health")}>📊 My Health</button>
+                  <button className="dc-chip" onClick={() => handleChipClick("Ask Anything")}>🎤 Ask Anything</button>
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { CircleUserRound, Menu, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -33,15 +34,15 @@ export default function LandingPage() {
 
         {/* Center: Desktop Nav Pill */}
         <div className="hidden md:flex liquid-glass rounded-full px-8 py-3 items-center gap-8">
-          <Link href="#" className="text-sm font-medium text-white transition-opacity">Home</Link>
-          <Link href="#" className="text-sm font-medium text-white/70 hover:opacity-100 transition-opacity">Our Approach</Link>
-          <Link href="#" className="text-sm font-medium text-white/70 hover:opacity-100 transition-opacity">Healing Methods</Link>
+          <Link href="/" className="text-sm font-medium text-white transition-opacity">Home</Link>
+          <Link href="/dashboard" className="text-sm font-medium text-white/70 hover:opacity-100 transition-opacity">Our Approach</Link>
+          <Link href="/dashboard" className="text-sm font-medium text-white/70 hover:opacity-100 transition-opacity">Healing Methods</Link>
         </div>
 
         {/* Right: Desktop Avatar */}
-        <div className="hidden md:flex liquid-glass h-10 w-10 rounded-full items-center justify-center cursor-pointer hover:bg-white/10 transition-colors">
+        <Link href="/dashboard" className="hidden md:flex liquid-glass h-10 w-10 rounded-full items-center justify-center cursor-pointer hover:bg-white/10 transition-colors">
           <CircleUserRound className="h-5 w-5 text-white/80" strokeWidth={1.5} />
-        </div>
+        </Link>
 
         {/* Right: Mobile Menu Toggle */}
         <button 
@@ -59,16 +60,16 @@ export default function LandingPage() {
         className={`fixed inset-0 z-10 flex flex-col items-center justify-center bg-black/80 backdrop-blur-xl md:hidden transition-opacity duration-500 ease-out ${menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       >
          <div className={`flex flex-col items-center gap-8 transition-transform duration-500 ease-out ${menuOpen ? "translate-y-0" : "-translate-y-8"}`}>
-            <Link href="#" onClick={() => setMenuOpen(false)} className="text-2xl font-medium text-white">Home</Link>
-            <Link href="#" onClick={() => setMenuOpen(false)} className="text-2xl font-medium text-white/80">Our Approach</Link>
-            <Link href="#" onClick={() => setMenuOpen(false)} className="text-2xl font-medium text-white/80">Healing Methods</Link>
+            <Link href="/" onClick={() => setMenuOpen(false)} className="text-2xl font-medium text-white">Home</Link>
+            <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="text-2xl font-medium text-white/80">Our Approach</Link>
+            <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="text-2xl font-medium text-white/80">Healing Methods</Link>
             
-            <div className="flex flex-col items-center gap-2 mt-4 cursor-pointer" onClick={() => setMenuOpen(false)}>
+            <Link href="/dashboard" className="flex flex-col items-center gap-2 mt-4 cursor-pointer" onClick={() => setMenuOpen(false)}>
               <div className="liquid-glass h-12 w-12 rounded-full flex items-center justify-center">
                  <CircleUserRound className="h-6 w-6 text-white/80" strokeWidth={1.5} />
               </div>
               <span className="text-sm font-light text-white/60">Account</span>
-            </div>
+            </Link>
          </div>
       </div>
 
@@ -81,10 +82,10 @@ export default function LandingPage() {
           {/* Badge */}
           <div className="liquid-glass rounded-full inline-flex items-center gap-2.5 sm:gap-3 px-3 py-1.5 sm:px-4 sm:py-2 mb-5 sm:mb-6">
             <div className="flex -space-x-2">
-              <img src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 1" className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
-              <img src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 2" className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
-              <img src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 3" className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
-              <img src="https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 4" className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
+              <Image src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 1" width={24} height={24} unoptimized className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
+              <Image src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 2" width={24} height={24} unoptimized className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
+              <Image src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 3" width={24} height={24} unoptimized className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
+              <Image src="https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Avatar 4" width={24} height={24} unoptimized className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20 object-cover" />
             </div>
             <span className="text-xs sm:text-sm font-light text-white/80 pr-1">our path to natural wellness</span>
           </div>
@@ -127,7 +128,7 @@ export default function LandingPage() {
                  <div key={i} className={`w-[4px] h-[4px] rounded-[1px] ${(i % 2 === 0) ? 'bg-white/60' : 'bg-white/0'}`} />
                ))}
             </div>
-            <span className="text-xl sm:text-2xl md:text-3xl font-normal text-white">Initial Consultation</span>
+            <span className="text-xl sm:text-2xl md:text-3xl font-normal text-white">500+ Sessions</span>
             <span className="text-xs sm:text-sm font-light text-white/60">Healing Sessions</span>
           </div>
 
@@ -138,3 +139,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
