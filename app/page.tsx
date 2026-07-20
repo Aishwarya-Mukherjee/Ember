@@ -254,129 +254,89 @@ export default function LandingPage() {
 
           </motion.div>
 
-          {/* Right Column: Interactive Animated Hero Visual */}
+          {/* Right Column: Clean Medical Dashboard Composition */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
-            className="lg:col-span-5 relative flex items-center justify-center h-[380px] sm:h-[480px] w-full lg:translate-x-12"
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5 relative flex items-center justify-center h-[400px] sm:h-[500px] w-full lg:translate-x-8"
           >
-            
-            {/* Outer Rotating Dotted Ring */}
-            <motion.div 
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 32, ease: "linear" }}
-              className="absolute w-[280px] h-[280px] sm:w-[380px] sm:h-[380px] border-2 border-dashed border-cyan-500/20 rounded-full pointer-events-none"
-            />
+            {/* Subtle background glow */}
+            <div className="absolute w-[280px] h-[280px] bg-cyan-100/50 rounded-full blur-[80px] pointer-events-none" />
 
-            {/* Mid Pulsing Ring */}
+            {/* Main Center Card: Health Score */}
             <motion.div 
-              animate={{ scale: [1, 1.12, 1], opacity: [0.15, 0.3, 0.15] }}
-              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-              className="absolute w-[220px] h-[220px] sm:w-[300px] sm:h-[300px] border border-teal-500/30 rounded-full pointer-events-none"
-            />
-
-            {/* Core Glow Background */}
-            <div className="absolute w-[180px] h-[180px] sm:w-[240px] sm:h-[240px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Floating 3D Character Container (Floating + Subtle heartbeat pulse) */}
-            <motion.div 
-              animate={{ 
-                y: [-12, 12, -12],
-                scale: [0.98, 1.02, 0.98],
-              }}
-              transition={{ 
-                y: { repeat: Infinity, duration: 6, ease: "easeInOut" },
-                scale: { repeat: Infinity, duration: 4, ease: "easeInOut" }
-              }}
-              className="relative z-10 w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] flex items-center justify-center"
+              animate={{ y: [-4, 4, -4] }}
+              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+              className="relative z-10 bg-white border border-slate-200 rounded-[32px] p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] w-[260px] flex flex-col items-center"
             >
-              
-              {/* Doctor Avatar Image */}
-              <img 
-                src="/Bot.png" 
-                alt="AI Health Companion" 
-                className="w-full h-full object-contain filter drop-shadow-[0_8px_35px_rgba(6,182,212,0.35)]"
-              />
-
-              {/* Breathing Avatar Shadow */}
-              <motion.div 
-                animate={{ 
-                  scaleX: [0.75, 1, 0.75],
-                  opacity: [0.25, 0.45, 0.25]
-                }}
-                transition={{ 
-                  repeat: Infinity, 
-                  duration: 6, 
-                  ease: "easeInOut" 
-                }}
-                className="absolute bottom-[-15px] left-[15%] right-[15%] h-[12px] bg-cyan-950/40 blur-sm rounded-full pointer-events-none"
-              />
-            </motion.div>
-
-            {/* Floating Dynamic Vitals Widgets */}
-            
-            {/* Widget 1: Heart Rate (Heart Icon + Heartbeat pulse) */}
-            <motion.div 
-              animate={{ y: [-8, 8, -8] }}
-              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.5 }}
-              className="absolute top-[8%] left-[2%] sm:left-[8%] z-20 liquid-glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-lg"
-            >
-              <motion.div 
-                animate={{ scale: [1, 1.25, 1] }}
-                transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
-                className="w-7 h-7 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-500"
-              >
-                <Heart className="w-4 h-4 fill-pink-500" />
-              </motion.div>
-              <div className="flex flex-col text-left">
-                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Heart Rate</span>
-                <span className="text-xs font-bold text-slate-800 tracking-wide">72 bpm</span>
+              <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 w-full justify-start text-sm">
+                <Activity className="w-4 h-4 text-emerald-500" /> Health Score
+              </h3>
+              <div className="relative w-32 h-32 mb-2 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#f1f5f9" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#0d9488" strokeWidth="8" strokeDasharray="251.2" strokeDashoffset="45.216" strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-extrabold text-slate-800">82</span>
+                </div>
+              </div>
+              <div className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold mt-2">
+                ↑ 8 pts from last week
               </div>
             </motion.div>
 
-            {/* Widget 2: Brain Synapses (Activity Icon) */}
+            {/* Top Right Floating Card: AI Insight */}
             <motion.div 
-              animate={{ y: [8, -8, 8] }}
-              transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut", delay: 1.2 }}
-              className="absolute top-[20%] right-[2%] sm:right-[5%] z-20 liquid-glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-lg"
+              animate={{ y: [4, -4, 4] }}
+              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+              className="absolute top-[5%] right-[-5%] sm:right-[5%] z-20 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 shadow-xl shadow-slate-200/50 w-[200px]"
             >
-              <div className="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-                <Activity className="w-4 h-4" />
+              <div className="flex items-center gap-2 mb-2">
+                <BrainCircuit className="w-4 h-4 text-cyan-600" />
+                <span className="text-xs font-bold text-slate-800">AI Insight</span>
               </div>
-              <div className="flex flex-col text-left">
-                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Vitals Status</span>
-                <span className="text-xs font-bold text-emerald-600 tracking-wide">Optimal</span>
+              <p className="text-[10px] text-slate-600 leading-relaxed font-medium">
+                Blood pressure is stable. Great job maintaining your daily routine!
+              </p>
+            </motion.div>
+
+            {/* Bottom Left Floating Card: Vitals */}
+            <motion.div 
+              animate={{ y: [-3, 3, -3] }}
+              transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut", delay: 0.5 }}
+              className="absolute bottom-[10%] left-[-5%] sm:left-[0%] z-20 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 shadow-xl shadow-slate-200/50 w-[180px]"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Heart Rate</span>
+                <Heart className="w-3 h-3 text-red-500" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-slate-800">72</span>
+                <span className="text-[10px] text-slate-500 font-medium">bpm</span>
+              </div>
+              <div className="mt-2 h-6 w-full flex items-end gap-1">
+                {[40, 70, 50, 90, 60, 80].map((h, i) => (
+                  <div key={i} className="w-full bg-red-100 rounded-t-sm" style={{ height: `${h}%` }}>
+                    <div className="w-full bg-red-400 rounded-t-sm" style={{ height: '30%' }} />
+                  </div>
+                ))}
               </div>
             </motion.div>
 
-            {/* Widget 3: Brain waves / Mind State */}
+            {/* Bottom Right Floating Card: Medication */}
             <motion.div 
-              animate={{ y: [-6, 6, -6] }}
-              transition={{ repeat: Infinity, duration: 4.8, ease: "easeInOut", delay: 0.2 }}
-              className="absolute bottom-[16%] left-[2%] sm:left-[6%] z-20 liquid-glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-lg"
+              animate={{ y: [3, -3, 3] }}
+              transition={{ repeat: Infinity, duration: 4.8, ease: "easeInOut", delay: 1.5 }}
+              className="absolute bottom-[25%] right-[-10%] sm:right-[-5%] z-0 bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-2xl p-3 shadow-lg w-[140px] flex items-center gap-3"
             >
-              <div className="w-7 h-7 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400">
-                <BrainCircuit className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                <Pill className="w-4 h-4 text-emerald-600" />
               </div>
-              <div className="flex flex-col text-left">
-                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Cognitive</span>
-                <span className="text-xs font-bold text-slate-800 tracking-wide">Active</span>
-              </div>
-            </motion.div>
-
-            {/* Widget 4: Medication compliance */}
-            <motion.div 
-              animate={{ y: [6, -6, 6] }}
-              transition={{ repeat: Infinity, duration: 6.2, ease: "easeInOut", delay: 1.8 }}
-              className="absolute bottom-[8%] right-[2%] sm:right-[8%] z-20 liquid-glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 shadow-lg"
-            >
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-600">
-                <Pill className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col text-left">
-                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">PillGuard</span>
-                <span className="text-xs font-bold text-slate-800 tracking-wide">100% Adhere</span>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-slate-800">Medication</span>
+                <span className="text-[9px] text-slate-500">Taken</span>
               </div>
             </motion.div>
 
