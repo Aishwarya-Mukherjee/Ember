@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ember-dark: #0A0B0E;
+  --color-ember-surface: #14161F;
+  --color-ember-border: #272A38;
+  --color-ember-orange: #FF5E36;
+  --color-ember-gold: #FFA03A;
+}
+
 .liquid-glass {
   background: rgba(255, 255, 255, 0.01);
   background-blend-mode: luminosity;
