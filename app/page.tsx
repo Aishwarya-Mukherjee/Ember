@@ -3,7 +3,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useTransform, animate, useReducedMotion } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Heart, Activity, Moon, BrainCircuit, Pill, Droplets } from "lucide-react";
+import ProblemSection from "./components/ProblemSection";
 
 // --- Micro Components ---
 
@@ -48,7 +50,7 @@ const Counter = ({ value }: { value: number }) => {
   return <motion.span>{rounded}</motion.span>;
 };
 
-const MagneticButton = ({ children, className, primary = false }: { children: React.ReactNode, className?: string, primary?: boolean }) => {
+const MagneticButton = ({ children, className, primary = false, onClick }: { children: React.ReactNode, className?: string, primary?: boolean, onClick?: () => void }) => {
   const ref = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -71,6 +73,7 @@ const MagneticButton = ({ children, className, primary = false }: { children: Re
   return (
     <motion.button
       ref={ref}
+      onClick={onClick}
       onMouseMove={handleMouse}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={reset}
@@ -97,6 +100,7 @@ const MagneticButton = ({ children, className, primary = false }: { children: Re
 // --- Main Page ---
 
 export default function LandingPage() {
+  const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
 
   // Animations
@@ -134,7 +138,8 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#FAFAFA] font-sans text-slate-900 overflow-hidden flex items-center selection:bg-slate-200">
+    <>
+      <div className="relative min-h-screen bg-[#FAFAFA] font-sans text-slate-900 overflow-hidden flex items-center selection:bg-slate-200">
       
       {/* 1. Ambient Background Effects (Ultra Soft) */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -178,25 +183,32 @@ export default function LandingPage() {
           variants={contentVariants}
           initial="hidden"
           animate="visible"
-          className="w-full md:w-[40%] flex flex-col items-start justify-center pt-24 md:pt-0 pr-0 md:pr-12 lg:pr-20 z-20"
+          className="w-full md:w-[40%] flex flex-col items-start justify-center pt-24 md:pt-0 pr-0 md:pr-12 lg:pr-20 z-20 relative"
         >
+          {/* Subtle light behind text */}
+          <div 
+            className="absolute -top-[10%] -left-[20%] w-[150%] h-[150%] pointer-events-none z-[-1]"
+            style={{
+              background: "radial-gradient(circle at top, rgba(20,184,166,0.18) 0%, rgba(20,184,166,0.08) 25%, transparent 65%)"
+            }}
+          />
           
           <motion.div variants={itemVariants} className="mb-8 inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white border border-[rgba(0,0,0,0.04)] shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
             <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
             <span className="text-[12px] font-medium tracking-[0.02em] text-slate-500 uppercase">Introducing Ember</span>
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="mb-7 text-[48px] sm:text-[56px] lg:text-[72px] font-medium tracking-tight text-slate-900 leading-[1.08] will-change-transform">
-            Intelligent care.<br />
-            Beautifully simple.
+          <motion.h1 variants={itemVariants} className="mb-7 text-[clamp(2.8rem,5vw,4.2rem)] font-semibold tracking-[-0.03em] text-slate-900 leading-[1.1] will-change-transform">
+            Empowering Care Through<br />
+            <span className="text-teal-500" style={{ textShadow: "0 0 12px rgba(20,184,166,0.18)" }}>Context &amp; Clarity</span>
           </motion.h1>
 
           <motion.p variants={itemVariants} className="mb-12 text-[17px] lg:text-[19px] text-slate-500 font-normal leading-[1.65] max-w-[420px] tracking-[-0.01em]">
-            Elevate your practice with AI-driven insights, seamless patient experiences, and intuitive workflows designed for modern healthcare.
+            Bringing patient insights, diagnostics, and care together in one seamless experience.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-5">
-            <MagneticButton primary className="px-8 py-3.5 rounded-full bg-[#0F1115] text-white text-[14.5px] font-medium shadow-[0_4px_16px_rgba(15,17,21,0.1),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:shadow-[0_8px_24px_rgba(15,17,21,0.15)] transition-shadow duration-300">
+          <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-5 mt-4">
+            <MagneticButton onClick={() => router.push('/dashboard')} primary className="px-8 py-3.5 rounded-full bg-teal-500 hover:bg-teal-600 text-white text-[14.5px] font-semibold shadow-[0_4px_16px_rgba(20,184,166,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:shadow-[0_8px_24px_rgba(20,184,166,0.4)] transition-all duration-300">
               Request Access
             </MagneticButton>
             <MagneticButton className="px-8 py-3.5 rounded-full bg-white/60 backdrop-blur-md text-slate-700 text-[14.5px] font-medium border border-[rgba(0,0,0,0.04)] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)] hover:bg-white transition-all duration-300">
@@ -406,5 +418,7 @@ export default function LandingPage() {
 
       </main>
     </div>
+    <ProblemSection />
+    </>
   );
 }
