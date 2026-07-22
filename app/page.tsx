@@ -295,11 +295,11 @@ export default function LandingPage() {
                 </filter>
               </defs>
               {[
-                { x1: "12%", y1: "12%", x2: "50%", y2: "15%", delay: 0 }, // Mental -> head
-                { x1: "8%", y1: "36%", x2: "50%", y2: "32%", delay: 0.3 }, // Heart Rate -> heart
-                { x1: "92%", y1: "42%", x2: "50%", y2: "38%", delay: 0.6 }, // Blood Pressure -> chest
-                { x1: "90%", y1: "69%", x2: "50%", y2: "58%", delay: 0.9 }, // Hydration -> abdomen
-                { x1: "15%", y1: "88%", x2: "50%", y2: "85%", delay: 1.2 }, // Activity -> legs
+                { x1: "20%", y1: "12%", x2: "50%", y2: "15%", delay: 0 }, // Mental -> head
+                { x1: "15%", y1: "38%", x2: "50%", y2: "32%", delay: 0.3 }, // Heart Rate -> heart
+                { x1: "80%", y1: "44%", x2: "50%", y2: "38%", delay: 0.6 }, // Blood Pressure -> chest
+                { x1: "75%", y1: "75%", x2: "50%", y2: "58%", delay: 0.9 }, // Hydration -> abdomen
+                { x1: "25%", y1: "90%", x2: "50%", y2: "85%", delay: 1.2 }, // Activity -> legs
               ].map((pos, i) => (
                 <motion.line 
                   key={i} 
@@ -324,11 +324,11 @@ export default function LandingPage() {
             {/* Floating Health Cards */}
             <div className="absolute inset-0 z-40 pointer-events-none hidden md:block">
               {[
-                { title: "Mental Wellness", Icon: BrainCircuit, value: "Calm", status: "Stable", color: "text-purple-500", bg: "bg-purple-500", style: { top: "8%", left: "-6%" }, delay: 0 },
-                { title: "Heart Rate", Icon: Heart, value: "72 bpm", status: "Normal", color: "text-rose-500", bg: "bg-rose-500", style: { top: "32%", left: "-10%" }, delay: 0.3 },
-                { title: "Blood Pressure", Icon: Activity, value: "118/75", status: "Optimal", color: "text-blue-500", bg: "bg-blue-500", style: { top: "38%", right: "-10%" }, delay: 0.6 },
-                { title: "Hydration", Icon: Droplets, value: "1.8 L", status: "On Track", color: "text-cyan-500", bg: "bg-cyan-500", style: { top: "65%", right: "-6%" }, delay: 0.9 },
-                { title: "Daily Activity", Icon: Flame, value: "6,420", status: "Steps", color: "text-orange-500", bg: "bg-orange-500", style: { bottom: "6%", left: "0%" }, delay: 1.2 },
+                { title: "Mental Wellness", Icon: BrainCircuit, value: "Calm", status: "Stable", color: "text-purple-500", bg: "bg-purple-500", style: { top: "8%", left: "4%" }, delay: 0 },
+                { title: "Heart Rate", Icon: Heart, value: "72 bpm", status: "Normal", color: "text-rose-500", bg: "bg-rose-500", style: { top: "35%", left: "2%" }, delay: 0.3 },
+                { title: "Blood Pressure", Icon: Activity, value: "118/75", status: "Optimal", color: "text-blue-500", bg: "bg-blue-500", style: { top: "40%", right: "2%" }, delay: 0.6 },
+                { title: "Hydration", Icon: Droplets, value: "1.8 L", status: "On Track", color: "text-cyan-500", bg: "bg-cyan-500", style: { top: "72%", right: "6%" }, delay: 0.9 },
+                { title: "Daily Activity", Icon: Flame, value: "6,420", status: "Steps", color: "text-orange-500", bg: "bg-orange-500", style: { bottom: "6%", left: "12%" }, delay: 1.2 },
               ].map((card, idx) => (
                 <motion.div
                   key={idx}
@@ -343,24 +343,24 @@ export default function LandingPage() {
                     scale: { duration: 0.5, delay: card.delay },
                     y: { repeat: Infinity, duration: 4, ease: "easeInOut", delay: card.delay }
                   }}
-                  className="absolute bg-white/80 backdrop-blur-[20px] border border-white/60 shadow-[0_4px_20px_rgba(15,23,42,0.04),0_12px_40px_rgba(15,23,42,0.03),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_0_20px_rgba(255,255,255,0.5)] rounded-[22px] p-3.5 w-[150px] h-[92px] flex flex-col justify-between pointer-events-auto group hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(15,23,42,0.06),0_16px_50px_rgba(15,23,42,0.04),inset_0_1px_1px_rgba(255,255,255,1),inset_0_0_20px_rgba(255,255,255,0.8)] transition-all duration-500 ease-out overflow-hidden"
+                  className="absolute bg-white/80 backdrop-blur-[20px] border border-white/60 shadow-[0_4px_20px_rgba(15,23,42,0.04),0_12px_40px_rgba(15,23,42,0.03),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_0_20px_rgba(255,255,255,0.5)] rounded-[20px] p-3 w-[136px] h-[84px] flex flex-col justify-between pointer-events-auto group hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(15,23,42,0.06),0_16px_50px_rgba(15,23,42,0.04),inset_0_1px_1px_rgba(255,255,255,1),inset_0_0_20px_rgba(255,255,255,0.8)] transition-all duration-500 ease-out overflow-hidden"
                   style={card.style}
                 >
                   {/* VisionOS Specular Highlight */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   {/* Gentle Edge Reflection on Hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-100/0 to-slate-100/0 group-hover:from-slate-100/20 group-hover:to-transparent transition-colors duration-500 pointer-events-none rounded-[22px]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-100/0 to-slate-100/0 group-hover:from-slate-100/20 group-hover:to-transparent transition-colors duration-500 pointer-events-none rounded-[20px]" />
                   
-                  <div className="relative z-10 flex items-center gap-2.5">
-                    <div className={`w-7 h-7 rounded-full flex-shrink-0 ${card.bg}/20 flex items-center justify-center border border-white/50 backdrop-blur-md`}>
-                      <card.Icon className={`w-[14px] h-[14px] ${card.color}`} />
+                  <div className="relative z-10 flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full flex-shrink-0 ${card.bg}/20 flex items-center justify-center border border-white/50 backdrop-blur-md`}>
+                      <card.Icon className={`w-3 h-3 ${card.color}`} />
                     </div>
-                    <span className="text-[10.5px] font-semibold text-slate-600 leading-tight uppercase tracking-[0.08em] truncate">{card.title}</span>
+                    <span className="text-[9.5px] font-semibold text-slate-600 leading-tight uppercase tracking-[0.08em] truncate">{card.title}</span>
                   </div>
                   <div className="relative z-10 flex items-end justify-between pl-1">
                     <div>
-                      <div className="text-[16px] font-bold text-slate-900 leading-none">{card.value}</div>
-                      <div className="text-[10px] font-semibold text-slate-400/90 mt-1 uppercase tracking-wider">{card.status}</div>
+                      <div className="text-[14px] font-bold text-slate-900 leading-none">{card.value}</div>
+                      <div className="text-[9px] font-semibold text-slate-400/90 mt-1 uppercase tracking-wider">{card.status}</div>
                     </div>
                     <MiniGraph bgClass={card.bg} />
                   </div>
@@ -399,11 +399,11 @@ export default function LandingPage() {
                animate={{ y: [0, -12, 0], scale: [1, 1.015, 1] }}
                transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
                style={{ x: parallaxHeroX, y: parallaxHeroY }}
-               className="relative z-30 w-[75%] h-[85%] flex items-center justify-center drop-shadow-[0_0_20px_rgba(34,211,238,0.15)]"
+               className="relative z-30 w-[95%] h-[95%] flex items-center justify-center drop-shadow-[0_0_30px_rgba(34,211,238,0.25)]"
             >
                {/* Radial Illumination Behind Hologram */}
                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                 <div className="w-[80%] h-[90%] bg-blue-100/10 rounded-full blur-[100px]" />
+                 <div className="w-[80%] h-[90%] bg-blue-100/5 rounded-full blur-[100px]" />
                </div>
 
                {/* Volumetric God Rays */}
@@ -420,17 +420,17 @@ export default function LandingPage() {
                  />
                </div>
 
-               {/* Subtle Fog / Light Diffusion */}
+               {/* Soft Radial Glow / Chest Illumination */}
                <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden opacity-30">
                  <motion.div 
                    animate={{ x: [-20, 20, -20], y: [0, -20, 0] }}
                    transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
-                   className="absolute top-[30%] left-[20%] w-[60%] h-[40%] bg-blue-50/40 blur-[80px] rounded-full"
+                   className="absolute top-[20%] left-[10%] w-[80%] h-[60%] bg-blue-100/10 blur-[100px] rounded-full"
                  />
                  <motion.div 
                    animate={{ x: [20, -20, 20], y: [0, 20, 0] }}
                    transition={{ repeat: Infinity, duration: 16, ease: "easeInOut", delay: 1 }}
-                   className="absolute top-[40%] right-[15%] w-[50%] h-[50%] bg-slate-50/40 blur-[90px] rounded-full"
+                   className="absolute top-[35%] right-[15%] w-[50%] h-[50%] bg-slate-50/30 blur-[90px] rounded-full"
                  />
                </div>
 
@@ -445,7 +445,7 @@ export default function LandingPage() {
                    src="/hologram_transparent.png" 
                    alt="Glowing Holographic AI Health Assistant" 
                    fill
-                   className="object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.15)]"
+                   className="object-contain drop-shadow-[0_0_24px_rgba(34,211,238,0.25)]"
                    priority
                  />
                </div>
@@ -483,13 +483,13 @@ export default function LandingPage() {
                  className="absolute top-[35%] left-[49%] w-8 h-8 sm:w-10 sm:h-10 bg-rose-400 rounded-full blur-[20px] mix-blend-screen z-10"
                />
 
-               {/* Center Health Score Widget (Abdomen) */}
-               <div className="absolute top-[65%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center">
+               {/* Center Health Score Widget (Solar Plexus) */}
+               <div className="absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center">
                  {/* Subtle cyan bloom */}
-                 <div className="absolute inset-0 bg-cyan-400/20 blur-2xl rounded-full scale-125" />
+                 <div className="absolute inset-0 bg-cyan-400/10 blur-xl rounded-full scale-100" />
                  
                  {/* Glass Circle */}
-                 <div className="relative w-28 h-28 sm:w-36 sm:h-36 bg-white/10 backdrop-blur-md rounded-full border border-white/30 flex flex-col items-center justify-center shadow-[0_8px_32px_rgba(6,182,212,0.2)]">
+                 <div className="relative w-24 h-24 sm:w-28 sm:h-28 bg-white/5 backdrop-blur-md rounded-full border border-white/20 flex flex-col items-center justify-center shadow-[0_8px_32px_rgba(6,182,212,0.1)]">
                    
                    {/* Animated glowing ring */}
                    <motion.svg 
@@ -500,34 +500,34 @@ export default function LandingPage() {
                      <circle 
                        cx="50%" cy="50%" r="48%" 
                        fill="none" 
-                       stroke="rgba(255,255,255,0.15)" 
+                       stroke="rgba(255,255,255,0.1)" 
                        strokeWidth="1.5" 
                      />
                      <motion.circle 
                        cx="50%" cy="50%" r="48%" 
                        fill="none" 
                        stroke="#22d3ee" 
-                       strokeWidth="2.5" 
+                       strokeWidth="2" 
                        strokeLinecap="round"
                        initial={{ pathLength: 0 }}
                        animate={{ pathLength: 0.92 }}
                        transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
-                       className="drop-shadow-[0_0_6px_rgba(34,211,238,0.5)]"
+                       className="drop-shadow-[0_0_4px_rgba(34,211,238,0.4)]"
                      />
                    </motion.svg>
                    
                    {/* Soft pulse ring */}
                    <motion.div
-                     animate={{ scale: [1, 1.4], opacity: [0.4, 0] }}
+                     animate={{ scale: [1, 1.4], opacity: [0.3, 0] }}
                      transition={{ repeat: Infinity, duration: 1.5, repeatDelay: 2.5, ease: "easeOut" }}
-                     className="absolute inset-0 rounded-full border border-cyan-300/40"
+                     className="absolute inset-0 rounded-full border border-cyan-300/20"
                    />
 
-                   <span className="text-[9px] sm:text-[10px] font-semibold text-cyan-50 tracking-widest uppercase mb-0.5 drop-shadow-sm">Health Score</span>
-                   <div className="text-4xl sm:text-5xl font-black text-white leading-none drop-shadow-lg">
+                   <span className="text-[8px] sm:text-[9px] font-semibold text-cyan-50 tracking-widest uppercase mb-0.5 drop-shadow-sm">Health Score</span>
+                   <div className="text-3xl sm:text-4xl font-black text-white leading-none drop-shadow-lg">
                      <Counter value={92} />
                    </div>
-                   <span className="text-[8px] sm:text-[9px] font-bold text-cyan-300 mt-1 uppercase tracking-[0.2em]">Excellent</span>
+                   <span className="text-[7px] sm:text-[8px] font-bold text-cyan-300 mt-1 uppercase tracking-[0.2em]">Excellent</span>
                  </div>
                </div>
              </motion.div>
