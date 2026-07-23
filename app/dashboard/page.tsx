@@ -1,10 +1,11 @@
 "use client";
 
-import { mockAppData } from "@/data/seed";
+import { AppData, VitalsEntry } from "@/lib/types";
+import { mockAppData } from "@/data/seed"; // Still using mock for patient/reminders/alerts
 import { motion } from "framer-motion";
 import { Activity, Bell, BrainCircuit, CheckCircle2, Droplet, Flame, Search, Pill, Stethoscope, AlertTriangle, MessageSquare, Heart, Scale, Calendar, FileDown } from "lucide-react";
 import Image from "next/image";
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import DoctorCanvas from "@/components/DoctorCanvas";
@@ -29,11 +30,37 @@ const GlassPanel = ({ children, className = "" }: { children: React.ReactNode, c
 );
 
 function DashboardContent() {
-  const data = mockAppData;
-  const [activeModal, setActiveModal] = React.useState<string | null>(null);
-  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
+  const [data, setData] = useState<AppData>(mockAppData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "dashboard";
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [vitalsRes, symptomsRes] = await Promise.all([
+          fetch('/api/vitals?patientId=patient_001'),
+          fetch('/api/symptoms?patientId=patient_001')
+        ]);
+        
+        const vitals = await vitalsRes.json();
+        const symptoms = await symptomsRes.json();
+        
+        setData(prev => ({
+          ...prev,
+          vitals: vitals.length > 0 ? vitals : prev.vitals,
+          symptoms: symptoms.length > 0 ? symptoms : prev.symptoms,
+        }));
+      } catch (error) {
+        console.error("Failed to fetch API data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);

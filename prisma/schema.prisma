@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Patient {
+  id          String  @id @default(uuid())
+  name        String
+  age         Int
+  condition   String // "diabetes" | "hypertension" | "asthma" | "heart_disease"
+  caregiverId String?
+
+  // Relations
+  medications Medication[]
+  symptoms    SymptomLog[]
+  vitals      VitalsEntry[]
+  reminders   Reminder[]
+  alerts      RiskAlert[]
+}
+
+model Medication {
+  id        String @id @default(uuid())
+  patientId String
+  name      String
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model SymptomLog {
+  id        String   @id @default(uuid())
+  patientId String
+  timestamp DateTime
+  symptoms  String[]
+  severity  Int // 1 | 2 | 3 | 4 | 5
+  rawText   String
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model VitalsEntry {
+  id        String   @id @default(uuid())
+  patientId String
+  timestamp DateTime
+  type      String // "blood_pressure" | "blood_sugar" | "weight" | "heart_rate"
+  value     Float
+  unit      String
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model Reminder {
+  id          String   @id @default(uuid())
+  patientId   String
+  type        String // "medication" | "appointment"
+  label       String
+  scheduledAt DateTime
+  status      String // "pending" | "done" | "snoozed" | "missed"
+  missedCount Int      @default(0)
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model RiskAlert {
+  id          String   @id @default(uuid())
+  patientId   String
+  triggeredAt DateTime
+  rule        String
+  severity    String // "warning" | "critical"
+  insight     String
+  dismissed   Boolean  @default(false)
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}

@@ -118,7 +118,7 @@ export default function LandingPage() {
       opacity: 1, 
       y: 0, 
       filter: "blur(0px)",
-      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const } 
     }
   };
 
@@ -129,7 +129,7 @@ export default function LandingPage() {
       y: 0,
       scale: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 20,
         delay: 0.6 + i * 0.1,
