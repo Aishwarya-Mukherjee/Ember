@@ -135,6 +135,62 @@ For full product specs, user personas (Meera, Rajesh, Dr. Anya), success metrics
 
 ---
 
+## 🔒 Environment Variables
+
+Ember requires several environment variables for authentication, database connection, and AI generation.
+
+Create a `.env.local` file at the root of the project:
+
+```bash
+DATABASE_URL="postgres://user:password@host:port/database"
+ANTHROPIC_API_KEY="your-anthropic-key-here"
+AUTH_SECRET="your-local-auth-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+```
+> **Security Note:** Never commit actual secrets. See `.env.example` for the required schema.
+
+---
+
+## 🗄️ Database & Prisma
+
+We use Prisma ORM connected to PostgreSQL.
+
+1. **Push schema to local database:**
+   ```bash
+   npx prisma db push
+   ```
+2. **Generate Prisma Client:**
+   ```bash
+   npx prisma generate
+   ```
+3. **Seed mock database (optional):**
+   ```bash
+   npm run prisma:seed
+   ```
+   *(Note: This populates synthetic mock patients like Meera Sharma).*
+
+---
+
+## 🚀 Deployment (Vercel)
+
+Ember is designed for zero-config deployment on [Vercel](https://vercel.com).
+
+1. Import the repository into your Vercel Dashboard.
+2. Navigate to **Settings > Environment Variables** and inject the following:
+   - `DATABASE_URL` (Points to your production PostgreSQL like Supabase or Neon)
+   - `ANTHROPIC_API_KEY`
+   - `AUTH_SECRET` (Run `npx auth secret` locally to generate a secure random hash)
+   - `NEXTAUTH_URL` (Your production Vercel domain)
+3. Under **Build & Development Settings**, Vercel will automatically run `npm run build`.
+4. **IMPORTANT: Database Migrations in Production**
+   Do NOT use `prisma db push` or `prisma migrate dev` in production. Instead, run:
+   ```bash
+   npx prisma migrate deploy
+   ```
+   *You can add this to your build command in `package.json` if preferred: `"build": "prisma generate && prisma migrate deploy && next build"`*
+
+---
+
 ## ⚖️ Medical Disclaimer
 
 *All AI-generated insights and pattern detections within Ember are intended for general wellness and pattern recognition only. They do not constitute medical diagnosis, treatment advice, or emergency medical services. Users are directed to consult licensed healthcare professionals for medical decisions.*

@@ -159,4 +159,6 @@ export const mockAppData: AppData = {
   vitals: seedVitals,
   reminders: seedReminders,
   alerts: seedAlerts,
+  medicationLogs: [],
+  checkIns: [],
 };

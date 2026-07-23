@@ -21,8 +21,8 @@ async function main() {
       condition: "diabetes",
       medications: {
         create: [
-          { name: "Metformin 500mg" },
-          { name: "Lisinopril 10mg" }
+          { id: "med_1", name: "Metformin 500mg" },
+          { id: "med_2", name: "Lisinopril 10mg" }
         ]
       }
     }
@@ -187,6 +187,51 @@ async function main() {
     skipDuplicates: true,
   });
   console.log(`Created alerts`);
+
+  // 6. Medication Logs
+  await prisma.medicationLog.createMany({
+    data: [
+      {
+        id: "medlog_1",
+        patientId: patient.id,
+        medicationId: "med_1",
+        takenAt: getPastDate(1),
+        status: "taken",
+      },
+      {
+        id: "medlog_2",
+        patientId: patient.id,
+        medicationId: "med_2",
+        takenAt: getPastDate(1),
+        status: "missed",
+        notes: "Forgot to take it with breakfast.",
+      }
+    ],
+    skipDuplicates: true,
+  });
+  console.log(`Created medication logs`);
+
+  // 7. Check-ins
+  await prisma.checkIn.createMany({
+    data: [
+      {
+        id: "checkin_1",
+        patientId: patient.id,
+        date: getPastDate(1),
+        mood: "Okay",
+        notes: "Feeling a bit sluggish.",
+      },
+      {
+        id: "checkin_2",
+        patientId: patient.id,
+        date: getPastDate(0),
+        mood: "Good",
+        notes: "Slept well last night.",
+      }
+    ],
+    skipDuplicates: true,
+  });
+  console.log(`Created check-ins`);
   console.log(`Seeding finished.`);
 }
 

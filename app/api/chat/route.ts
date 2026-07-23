@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import prisma from '@/lib/prisma';
-import { evaluateSymptomRisk, evaluateVitalsRisk } from '@/lib/server/riskEngine';
-
-// Optional API Key, allows the server to start without it and error gracefully at runtime
-const apiKey = process.env.ANTHROPIC_API_KEY || 'missing_key';
-const anthropic = new Anthropic({ apiKey });
+import { extractHealthDataFromText } from '@/lib/server/anthropic';
+import { evaluatePatientRisk } from '@/lib/server/riskEngine';
+import { processMedicationAdherence } from '@/lib/server/adherence';
+import { requireOwnership, UnauthorizedError, ForbiddenError } from '@/lib/server/auth';
 
 export async function POST(request: Request) {
   try {
@@ -14,103 +12,110 @@ export async function POST(request: Request) {
     if (!text || !patientId) {
       return NextResponse.json({ error: 'Missing text or patientId' }, { status: 400 });
     }
-    
-    if (apiKey === 'missing_key') {
-      console.warn("[API/Chat] ANTHROPIC_API_KEY is missing. Cannot perform extraction.");
-      return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured on server' }, { status: 500 });
-    }
 
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-haiku-latest',
-      max_tokens: 1024,
-      system: `You are a medical data extraction assistant. Your job is to extract structured vitals and symptoms from free-text patient logs. Use the provided tool to return the structured data. Do not add conversational text.`,
-      messages: [{ role: 'user', content: text }],
-      tools: [
-        {
-          name: 'record_health_data',
-          description: 'Record extracted vitals and symptoms',
-          input_schema: {
-            type: 'object',
-            properties: {
-              vitals: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    type: { type: 'string', description: "e.g., 'blood_sugar', 'blood_pressure', 'weight', 'temperature'" },
-                    value: { type: 'number' },
-                    unit: { type: 'string', description: "e.g., 'mg/dL', 'mmHg', 'kg', 'F'" },
-                  },
-                  required: ['type', 'value', 'unit'],
-                },
-              },
-              symptoms: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    symptoms: { type: 'array', items: { type: 'string' }, description: "List of identified symptoms like 'dizziness', 'fatigue', 'nausea'" },
-                    severity: { type: 'number', description: "Estimated severity from 1 to 5" },
-                  },
-                  required: ['symptoms', 'severity'],
-                },
-              },
-            },
-            required: ['vitals', 'symptoms'],
-          },
-        },
-      ],
-      tool_choice: { type: 'tool', name: 'record_health_data' },
+    // Verify authentication and authorization
+    await requireOwnership(patientId);
+
+    const start = Date.now();
+    
+    // 1. Extract structured data using Anthropic
+    const extractedData = await extractHealthDataFromText(text);
+
+    // 2. Persist Extracted Data inside a Prisma transaction
+    await prisma.$transaction(async (tx) => {
+      // 2a. Save CheckIn
+      await tx.checkIn.create({
+        data: {
+          patientId,
+          date: new Date(),
+          notes: extractedData.summary,
+        }
+      });
+
+      // 2b. Save Vitals
+      if (extractedData.vitals) {
+        if (extractedData.vitals.bloodSugar) {
+          await tx.vitalsEntry.create({
+            data: { patientId, type: 'blood_sugar', value: extractedData.vitals.bloodSugar, unit: 'mg/dL', timestamp: new Date() }
+          });
+        }
+        if (extractedData.vitals.bloodPressure) {
+          // split "120/80" -> store as systolic for MVP, or just store string? 
+          // Our model says 'value' is Float. We can store systolic for simplicity, or handle it via a separate field. 
+          // For now, parse systolic if available:
+          const sys = parseFloat(extractedData.vitals.bloodPressure.split('/')[0]);
+          if (!isNaN(sys)) {
+            await tx.vitalsEntry.create({
+              data: { patientId, type: 'blood_pressure', value: sys, unit: 'mmHg', timestamp: new Date() }
+            });
+          }
+        }
+        if (extractedData.vitals.heartRate) {
+          await tx.vitalsEntry.create({
+            data: { patientId, type: 'heart_rate', value: extractedData.vitals.heartRate, unit: 'bpm', timestamp: new Date() }
+          });
+        }
+        if (extractedData.vitals.weight) {
+          await tx.vitalsEntry.create({
+            data: { patientId, type: 'weight', value: extractedData.vitals.weight, unit: 'kg', timestamp: new Date() }
+          });
+        }
+      }
+
+      // 2c. Save Symptoms
+      if (extractedData.symptoms && extractedData.symptoms.length > 0) {
+        // Map severity strings to 1-5
+        const severityMap: Record<string, number> = { "Mild": 1, "Moderate": 3, "Severe": 4, "Critical": 5 };
+        
+        await tx.symptomLog.create({
+          data: {
+            patientId,
+            symptoms: extractedData.symptoms.map(s => s.name),
+            severity: Math.max(...extractedData.symptoms.map(s => severityMap[s.severity] || 2)),
+            rawText: text,
+            timestamp: new Date(),
+          }
+        });
+      }
+
+      // 2d. Save Medication Logs
+      if (extractedData.medications && extractedData.medications.length > 0) {
+        for (const med of extractedData.medications) {
+          // Resolve medication name to an existing Medication ID
+          const existingMed = await tx.medication.findFirst({
+            where: { patientId, name: { contains: med.name, mode: 'insensitive' } }
+          });
+
+          if (existingMed) {
+            await tx.medicationLog.create({
+              data: {
+                patientId,
+                medicationId: existingMed.id,
+                status: med.taken ? 'taken' : 'missed',
+                takenAt: new Date(),
+              }
+            });
+          }
+        }
+      }
     });
 
-    const toolCall = response.content.find((c) => c.type === 'tool_use');
-    if (!toolCall || toolCall.type !== 'tool_use') {
-      return NextResponse.json({ error: 'Failed to extract data' }, { status: 500 });
+    // 3. Trigger Intelligence Engines (Risk + Adherence) out-of-band or sequentially
+    await processMedicationAdherence(patientId);
+    await evaluatePatientRisk(patientId);
+
+    const duration = Date.now() - start;
+    console.log(`[API/Chat] Successfully processed chat check-in for ${patientId} in ${duration}ms`);
+
+    return NextResponse.json({ success: true, data: extractedData }, { status: 201 });
+  } catch (error: any) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { vitals, symptoms } = toolCall.input as { 
-      vitals: Array<{ type: string; value: number; unit: string }>;
-      symptoms: Array<{ symptoms: string[]; severity: number }>;
-    };
-
-    const savedVitals = [];
-    const savedSymptoms = [];
-
-    // Save vitals
-    for (const v of vitals) {
-      const entry = await prisma.vitalsEntry.create({
-        data: {
-          patientId,
-          type: v.type,
-          value: v.value,
-          unit: v.unit,
-          timestamp: new Date(),
-        }
-      });
-      // Evaluate risk rules synchronously
-      await evaluateVitalsRisk(patientId);
-      savedVitals.push(entry);
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-
-    // Save symptoms
-    for (const s of symptoms) {
-      const entry = await prisma.symptomLog.create({
-        data: {
-          patientId,
-          symptoms: s.symptoms,
-          severity: s.severity,
-          rawText: text,
-          timestamp: new Date(),
-        }
-      });
-      // Evaluate risk rules synchronously
-      await evaluateSymptomRisk(patientId);
-      savedSymptoms.push(entry);
-    }
-
-    return NextResponse.json({ vitals: savedVitals, symptoms: savedSymptoms }, { status: 201 });
-  } catch (error) {
-    console.error("[API/Chat] error:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error("[API/Chat] Processing failed:", error.message || error);
+    return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
   }
 }

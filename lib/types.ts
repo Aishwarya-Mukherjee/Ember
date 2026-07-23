@@ -45,10 +45,29 @@ export type RiskAlert = {
   dismissed: boolean;
 };
 
+export type MedicationLog = {
+  id: string;
+  patientId: string;
+  medicationId: string;
+  takenAt: string; // ISO string
+  status: "taken" | "missed" | "skipped";
+  notes?: string;
+};
+
+export type CheckIn = {
+  id: string;
+  patientId: string;
+  date: string; // ISO string
+  notes?: string;
+  mood?: string;
+};
+
 export type AppData = {
   patient: Patient;
   symptoms: SymptomLog[];
   vitals: VitalsEntry[];
   reminders: Reminder[];
   alerts: RiskAlert[];
+  medicationLogs: MedicationLog[];
+  checkIns: CheckIn[];
 };

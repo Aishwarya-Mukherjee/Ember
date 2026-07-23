@@ -4,12 +4,29 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../lib/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(PATIENT)
+  patientId String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
 }
 
 model Patient {
@@ -18,21 +35,31 @@ model Patient {
   age         Int
   condition   String // "diabetes" | "hypertension" | "asthma" | "heart_disease"
   caregiverId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
-  medications Medication[]
-  symptoms    SymptomLog[]
-  vitals      VitalsEntry[]
-  reminders   Reminder[]
-  alerts      RiskAlert[]
+  user           User?
+  medications    Medication[]
+  symptoms       SymptomLog[]
+  vitals         VitalsEntry[]
+  reminders      Reminder[]
+  alerts         RiskAlert[]
+  checkIns       CheckIn[]
+  medicationLogs MedicationLog[]
 }
 
 model Medication {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   patientId String
   name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient        Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medicationLogs MedicationLog[]
+
+  @@index([patientId])
 }
 
 model SymptomLog {
@@ -42,8 +69,13 @@ model SymptomLog {
   symptoms  String[]
   severity  Int // 1 | 2 | 3 | 4 | 5
   rawText   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([timestamp])
 }
 
 model VitalsEntry {
@@ -53,8 +85,13 @@ model VitalsEntry {
   type      String // "blood_pressure" | "blood_sugar" | "weight" | "heart_rate"
   value     Float
   unit      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([timestamp])
 }
 
 model Reminder {
@@ -65,8 +102,13 @@ model Reminder {
   scheduledAt DateTime
   status      String // "pending" | "done" | "snoozed" | "missed"
   missedCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([scheduledAt])
 }
 
 model RiskAlert {
@@ -77,6 +119,44 @@ model RiskAlert {
   severity    String // "warning" | "critical"
   insight     String
   dismissed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([triggeredAt])
+}
+
+model MedicationLog {
+  id           String   @id @default(uuid())
+  patientId    String
+  medicationId String
+  takenAt      DateTime
+  status       String // "taken" | "missed" | "skipped"
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  patient    Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medication Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([medicationId])
+  @@index([takenAt])
+}
+
+model CheckIn {
+  id        String   @id @default(uuid())
+  patientId String
+  date      DateTime
+  notes     String?
+  mood      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([date])
 }

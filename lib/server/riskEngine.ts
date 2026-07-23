@@ -1,100 +1,105 @@
-import prisma from '../prisma';
+import prisma from '@/lib/prisma';
 
-export async function evaluateSymptomRisk(patientId: string) {
-  try {
-    // Rule: dizziness_3x_week
-    // Check if the patient has had 3 or more dizziness symptoms in the last 7 days.
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+/**
+ * Ensures an alert is only created if there isn't an active one of the same rule for this patient.
+ */
+async function createAlert(patientId: string, rule: string, severity: 'warning' | 'critical', insight: string) {
+  const existingAlert = await prisma.riskAlert.findFirst({
+    where: {
+      patientId,
+      rule,
+      dismissed: false,
+    }
+  });
 
-    const recentDizzinessCount = await prisma.symptomLog.count({
-      where: {
+  if (!existingAlert) {
+    await prisma.riskAlert.create({
+      data: {
         patientId,
-        timestamp: {
-          gte: sevenDaysAgo,
-        },
-        symptoms: {
-          has: 'dizziness',
-        }
+        rule,
+        severity,
+        insight,
+        triggeredAt: new Date(),
+        dismissed: false,
       }
     });
-
-    if (recentDizzinessCount >= 3) {
-      // Check if an alert already exists in the last 7 days to prevent spam
-      const existingAlert = await prisma.riskAlert.findFirst({
-        where: {
-          patientId,
-          rule: 'dizziness_3x_week',
-          triggeredAt: {
-            gte: sevenDaysAgo,
-          }
-        }
-      });
-
-      if (!existingAlert) {
-        await prisma.riskAlert.create({
-          data: {
-            patientId,
-            rule: 'dizziness_3x_week',
-            severity: 'critical',
-            insight: "You've reported feeling dizzy 3 times in the last week. This could be related to your blood pressure medication or blood sugar levels.",
-            triggeredAt: new Date(),
-            dismissed: false,
-          }
-        });
-        console.log(`[RiskEngine] Alert created: dizziness_3x_week for patient ${patientId}`);
-      }
-    }
-  } catch (error) {
-    console.error("[RiskEngine] Failed to evaluate symptom risk:", error);
+    console.log(`[RiskEngine] Created ${severity} alert '${rule}' for patient ${patientId}`);
   }
 }
 
-export async function evaluateVitalsRisk(patientId: string) {
-  try {
-    // Rule: sugar_trending_up
-    // Check if the latest blood sugar is > 200 mg/dL
-    
-    const latestSugar = await prisma.vitalsEntry.findFirst({
-      where: {
-        patientId,
-        type: 'blood_sugar',
-      },
-      orderBy: {
-        timestamp: 'desc',
-      }
-    });
+/**
+ * Rule: Dizziness reported 3 times within 7 days -> Medium Risk alert
+ */
+async function processSymptoms(patientId: string) {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    if (latestSugar && latestSugar.value > 200) {
-      // Check if an alert already exists recently (e.g. last 3 days)
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
-      const existingAlert = await prisma.riskAlert.findFirst({
-        where: {
-          patientId,
-          rule: 'sugar_trending_up',
-          triggeredAt: {
-            gte: threeDaysAgo,
-          }
-        }
-      });
-
-      if (!existingAlert) {
-        await prisma.riskAlert.create({
-          data: {
-            patientId,
-            rule: 'sugar_trending_up',
-            severity: 'warning',
-            insight: "Your blood sugar crossed 200 mg/dL recently. Consider discussing your diet or medication with your doctor.",
-            triggeredAt: new Date(),
-            dismissed: false,
-          }
-        });
-        console.log(`[RiskEngine] Alert created: sugar_trending_up for patient ${patientId}`);
-      }
+  const recentDizziness = await prisma.symptomLog.count({
+    where: {
+      patientId,
+      timestamp: { gte: sevenDaysAgo },
+      symptoms: { hasSome: ['dizziness', 'dizzy', 'lightheaded'] },
     }
+  });
+
+  if (recentDizziness >= 3) {
+    await createAlert(
+      patientId,
+      'dizziness_3x_week',
+      'warning',
+      "You've reported feeling dizzy 3 times in the last week. Please take care when standing up and consider contacting your doctor."
+    );
+  }
+}
+
+/**
+ * Rule: Blood sugar consistently >200 mg/dL for 14 days -> High Risk alert
+ * Rule: Blood pressure repeatedly above threshold (e.g. > 140 systolic on last 3 readings) -> Alert
+ */
+async function processVitals(patientId: string) {
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+  // Blood sugar check
+  const recentSugars = await prisma.vitalsEntry.findMany({
+    where: { patientId, type: 'blood_sugar', timestamp: { gte: fourteenDaysAgo } },
+    orderBy: { timestamp: 'desc' }
+  });
+
+  if (recentSugars.length >= 3 && recentSugars.every(s => s.value > 200)) {
+    await createAlert(
+      patientId,
+      'sugar_high_14_days',
+      'critical',
+      "Your blood sugar has been consistently over 200 mg/dL for the past 14 days. This requires medical attention."
+    );
+  }
+
+  // Blood pressure check (systolic > 140 on last 3 readings)
+  const recentBPs = await prisma.vitalsEntry.findMany({
+    where: { patientId, type: 'blood_pressure' },
+    orderBy: { timestamp: 'desc' },
+    take: 3
+  });
+
+  if (recentBPs.length === 3 && recentBPs.every(bp => bp.value > 140)) {
+    await createAlert(
+      patientId,
+      'bp_high_repeated',
+      'warning',
+      "Your systolic blood pressure has been over 140 for your last 3 readings. Please monitor closely."
+    );
+  }
+}
+
+/**
+ * Main orchestrator to evaluate all risks for a patient
+ */
+export async function evaluatePatientRisk(patientId: string) {
+  try {
+    await processSymptoms(patientId);
+    await processVitals(patientId);
   } catch (error) {
-    console.error("[RiskEngine] Failed to evaluate vitals risk:", error);
+    console.error(`[RiskEngine] Failed to evaluate risks for patient ${patientId}:`, error);
   }
 }

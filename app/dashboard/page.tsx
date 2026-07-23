@@ -1,7 +1,8 @@
 "use client";
 
 import { AppData, VitalsEntry } from "@/lib/types";
-import { mockAppData } from "@/data/seed"; // Still using mock for patient/reminders/alerts
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { motion } from "framer-motion";
 import { Activity, Bell, BrainCircuit, CheckCircle2, Droplet, Flame, Search, Pill, Stethoscope, AlertTriangle, MessageSquare, Heart, Scale, Calendar, FileDown } from "lucide-react";
 import Image from "next/image";
@@ -30,42 +31,40 @@ const GlassPanel = ({ children, className = "" }: { children: React.ReactNode, c
 );
 
 function DashboardContent() {
-  const [data, setData] = useState<AppData>(mockAppData);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, error, isLoading } = useSWR<AppData>('/api/patients/patient_001', fetcher);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "dashboard";
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [vitalsRes, symptomsRes] = await Promise.all([
-          fetch('/api/vitals?patientId=patient_001'),
-          fetch('/api/symptoms?patientId=patient_001')
-        ]);
-        
-        const vitals = await vitalsRes.json();
-        const symptoms = await symptomsRes.json();
-        
-        setData(prev => ({
-          ...prev,
-          vitals: vitals.length > 0 ? vitals : prev.vitals,
-          symptoms: symptoms.length > 0 ? symptoms : prev.symptoms,
-        }));
-      } catch (error) {
-        console.error("Failed to fetch API data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  // Prevent crashes on initial load if data is null (though isLoading catches it)
+  const safeData: AppData = data || ({} as AppData);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500">
+        <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="font-bold">Loading your health dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <p className="font-bold text-slate-800 text-lg">Error loading data</p>
+        <p className="text-sm">{(error as any)?.info?.error || "Please try again later."}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-y-auto bg-slate-50 pb-12">
@@ -91,7 +90,7 @@ function DashboardContent() {
         <div className="hidden md:flex justify-between items-start mb-8 w-full max-w-7xl mx-auto">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              Good morning, {data.patient.name}
+              Good morning, {safeData.patient?.name || 'Guest'}
             </h1>
             <p className="text-slate-500 font-medium mt-1">Here&apos;s your health overview for today</p>
           </div>
