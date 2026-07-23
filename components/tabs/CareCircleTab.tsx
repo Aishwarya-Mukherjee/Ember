@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, UserPlus, Heart, Stethoscope } from "lucide-react";
+import { Users, UserPlus, Heart, Stethoscope, AlertTriangle } from "lucide-react";
 import { AppData } from "@/lib/types";
 
 export function CareCircleTab({ patientData }: { patientData: AppData }) {
@@ -40,6 +40,35 @@ export function CareCircleTab({ patientData }: { patientData: AppData }) {
         </div>
 
         <p className="text-slate-500 mb-8">Manage the people who have access to your health updates and alerts.</p>
+
+        {/* Caregiver Alerts */}
+        {(() => {
+          const criticalReminders = patientData.reminders?.filter((r: any) => r.missedCount >= 2) || [];
+          if (criticalReminders.length === 0) return null;
+          
+          return (
+            <div className="mb-8 space-y-3">
+              {criticalReminders.map((reminder: any) => (
+                <div key={`caregiver-alert-${reminder.id}`} className="bg-orange-50 border border-orange-200 p-4 rounded-2xl flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-orange-100 p-2 rounded-full shrink-0 mt-0.5">
+                      <AlertTriangle className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-orange-900 text-sm">Caregiver Notification Triggered</h4>
+                      <p className="text-orange-800 text-sm mt-0.5">
+                        ⚠️ <strong>Arun Sharma</strong> would be notified: <strong>{reminder.text}</strong> missed {reminder.missedCount}x in a row.
+                      </p>
+                    </div>
+                  </div>
+                  <button className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold shadow-sm whitespace-nowrap transition-colors">
+                    Review Alert
+                  </button>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {careCircle.map((member) => {

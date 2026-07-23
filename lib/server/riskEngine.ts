@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { generateAlertInsight } from '@/lib/server/anthropic';
+import { generateAlertInsight, generateWellnessTip } from '@/lib/server/anthropic';
 
 /**
  * Ensures an alert is only created if there isn't an active one of the same rule for this patient.
@@ -143,6 +143,49 @@ async function processMedications(patientId: string) {
 }
 
 /**
+ * Generate and store a daily wellness tip
+ */
+async function generateDailyWellnessTip(patientId: string) {
+  const existingTip = await prisma.riskAlert.findFirst({
+    where: {
+      patientId,
+      severity: 'wellness',
+      triggeredAt: { gte: new Date(new Date().setHours(0,0,0,0)) } // Only 1 per day
+    }
+  });
+
+  if (!existingTip) {
+    // Collect brief context
+    const recentVitals = await prisma.vitalsEntry.findMany({ where: { patientId }, orderBy: { timestamp: 'desc' }, take: 5 });
+    const recentSymptoms = await prisma.symptomLog.findMany({ where: { patientId }, orderBy: { timestamp: 'desc' }, take: 3 });
+    
+    const context = `
+Vitals: ${recentVitals.map(v => `${v.type}: ${v.value} ${v.unit}`).join(', ')}
+Symptoms: ${recentSymptoms.map(s => s.symptoms.join(', ')).join(' | ')}
+    `;
+
+    const tip = await generateWellnessTip(context);
+    
+    // Clear out old wellness tips so we only have one at a time for UI cleanliness
+    await prisma.riskAlert.deleteMany({
+      where: { patientId, severity: 'wellness' }
+    });
+
+    await prisma.riskAlert.create({
+      data: {
+        patientId,
+        rule: 'Daily Wellness Tip',
+        severity: 'wellness',
+        insight: tip,
+        triggeredAt: new Date(),
+        dismissed: false,
+      }
+    });
+    console.log(`[RiskEngine] Created wellness tip for patient ${patientId}`);
+  }
+}
+
+/**
  * Main orchestrator to evaluate all risks for a patient
  */
 export async function evaluatePatientRisk(patientId: string) {
@@ -150,6 +193,7 @@ export async function evaluatePatientRisk(patientId: string) {
     await processSymptoms(patientId);
     await processVitals(patientId);
     await processMedications(patientId);
+    await generateDailyWellnessTip(patientId);
   } catch (error) {
     console.error(`[RiskEngine] Failed to evaluate risks for patient ${patientId}:`, error);
   }

@@ -4,7 +4,7 @@ import { AppData, VitalsEntry, SymptomLog } from "@/lib/types";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { motion } from "framer-motion";
-import { Activity, Bell, BrainCircuit, CheckCircle2, Droplet, Flame, Search, Pill, Stethoscope, AlertTriangle, MessageSquare, Heart, Scale, Calendar, FileDown } from "lucide-react";
+import { Activity, Bell, BrainCircuit, CheckCircle2, Droplet, Flame, Search, Pill, Stethoscope, AlertTriangle, MessageSquare, Heart, Scale, Calendar, FileDown, Leaf } from "lucide-react";
 import Image from "next/image";
 import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -56,11 +56,15 @@ function DashboardContent() {
   const [vitalHR, setVitalHR] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [viewMode, setViewMode] = useState<"patient" | "caregiver">("patient");
 
   // Prevent crashes on initial load
   const safeData: AppData = patientData || ({} as AppData);
-  const alerts = safeData.alerts || [];
-  const topAlert = alerts.length > 0 ? alerts[0] : null;
+  const allAlerts = safeData.alerts || [];
+  const riskAlerts = allAlerts.filter(a => a.severity !== 'wellness');
+  const topAlert = riskAlerts.length > 0 ? riskAlerts[0] : null;
+  const wellnessTips = allAlerts.filter(a => a.severity === 'wellness');
+  const dailyTip = wellnessTips.length > 0 ? wellnessTips[0] : null;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -243,12 +247,28 @@ function DashboardContent() {
         <div className="hidden md:flex justify-between items-start mb-8 w-full max-w-7xl mx-auto">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              Good morning, {safeData.patient?.name || 'Guest'}
+              Good morning, {safeData.name || 'Guest'}
             </h1>
             <p className="text-slate-500 font-medium mt-1">Here&apos;s your health overview for today</p>
           </div>
 
           <div className="flex items-center gap-4">
+            {/* View Mode Toggle */}
+            <div className="hidden md:flex items-center bg-white/50 backdrop-blur-xl p-1 rounded-xl border border-white/80 shadow-sm mr-2">
+              <button
+                onClick={() => setViewMode("patient")}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${viewMode === "patient" ? "bg-white text-cyan-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                Patient
+              </button>
+              <button
+                onClick={() => setViewMode("caregiver")}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${viewMode === "caregiver" ? "bg-white text-cyan-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                Caregiver
+              </button>
+            </div>
+            
             <button
               onClick={() => window.open("/report/print", "_blank")}
               className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition-colors"
@@ -272,12 +292,35 @@ function DashboardContent() {
           </div>
         </div>
 
+        {/* Critical Missed Reminders Banner */}
+        {(() => {
+          const criticalReminders = safeData.reminders?.filter((r: any) => r.missedCount >= 2) || [];
+          if (criticalReminders.length === 0) return null;
+          
+          return (
+            <div className="w-full max-w-7xl mx-auto mb-6 flex flex-col gap-3">
+              {criticalReminders.map((reminder: any) => (
+                <div key={`critical-${reminder.id}`} className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5 shrink-0" />
+                  <div>
+                    <h3 className="text-orange-800 font-bold text-sm">Critical Missing Alert</h3>
+                    <p className="text-orange-700 text-sm mt-0.5">
+                      You have missed <strong>{reminder.text}</strong> {reminder.missedCount} times in a row. 
+                      Please review your schedule or consult your care provider.
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
         {/* 3-Column Layout */}
         {tab === "dashboard" ? (
-          <div className="flex-1 flex flex-col xl:grid xl:grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+          <div className={`flex-1 flex flex-col xl:grid ${viewMode === "caregiver" ? "xl:grid-cols-2" : "xl:grid-cols-12"} gap-6 max-w-7xl mx-auto w-full`}>
 
             {/* LEFT COLUMN */}
-            <div className="w-full xl:col-span-3 flex flex-col gap-6">
+            <div className={`w-full ${viewMode === "caregiver" ? "xl:col-span-1" : "xl:col-span-3"} flex flex-col gap-6`}>
 
               {/* Health Score */}
               <GlassPanel>
@@ -317,6 +360,7 @@ function DashboardContent() {
               </GlassPanel>
 
               {/* Today's Progress */}
+              {viewMode === "patient" && (
               <GlassPanel className="flex-1">
                 <h3 className="font-bold text-slate-800 mb-4">Today&apos;s Progress</h3>
                 <div className="space-y-4">
@@ -343,9 +387,11 @@ function DashboardContent() {
                   </div>
                 </div>
               </GlassPanel>
+              )}
             </div>
 
             {/* CENTER COLUMN */}
+            {viewMode === "patient" && (
             <div className="w-full xl:col-span-6 flex flex-col items-center justify-start pt-32 xl:pt-48 min-h-[400px] xl:min-h-[500px]">
               <div className="relative w-full flex flex-col items-center">
                 <DoctorCanvas onSelectAction={(act) => setActiveModal(act)} />
@@ -379,9 +425,10 @@ function DashboardContent() {
                 </div>
               </div>
             </div>
+            )}
 
             {/* RIGHT COLUMN */}
-            <div className="w-full xl:col-span-3 flex flex-col gap-6 mt-12 xl:mt-0">
+            <div className={`w-full ${viewMode === "caregiver" ? "xl:col-span-1" : "xl:col-span-3"} flex flex-col gap-6 mt-12 xl:mt-0`}>
 
               {/* Vitals Overview */}
               <GlassPanel>
@@ -436,6 +483,19 @@ function DashboardContent() {
                 <div className="absolute right-[-20px] top-1/2 -translate-y-1/2 w-24 h-24 bg-cyan-400/30 blur-xl rounded-full" />
               </GlassPanel>
 
+              {/* Daily Wellness Tip */}
+              {dailyTip && (
+                <GlassPanel className="bg-emerald-50 border-emerald-100 shadow-sm relative overflow-hidden">
+                  <div className="absolute right-[-20px] top-1/2 -translate-y-1/2 w-24 h-24 bg-emerald-400/20 blur-xl rounded-full pointer-events-none" />
+                  <h3 className="font-bold text-emerald-800 flex items-center gap-2 mb-2 relative z-10">
+                      <Leaf className="w-4 h-4 text-emerald-600" /> Daily Wellness Tip
+                  </h3>
+                  <p className="text-sm text-emerald-700 leading-relaxed font-medium relative z-10">
+                      {dailyTip.insight}
+                  </p>
+                </GlassPanel>
+              )}
+
               {/* Recent Alerts */}
               <GlassPanel className="flex-1">
                 <div className="flex justify-between items-center mb-4">
@@ -447,11 +507,11 @@ function DashboardContent() {
                     <div className="animate-pulse h-12 bg-slate-100 rounded-xl w-full"></div>
                     <div className="animate-pulse h-12 bg-slate-100 rounded-xl w-full"></div>
                   </div>
-                ) : alerts.length === 0 ? (
+                ) : riskAlerts.length === 0 ? (
                   <div className="h-20 flex items-center justify-center text-slate-400 font-medium text-sm">No recent alerts.</div>
                 ) : (
                   <div className="space-y-3">
-                    {alerts.slice(0, 3).map((alert: any) => (
+                    {riskAlerts.slice(0, 3).map((alert: any) => (
                       <div key={alert.id} className="flex gap-3 items-center bg-white/40 p-3 rounded-xl border border-white/60 cursor-pointer hover:bg-white/60 transition-colors" onClick={() => setActiveModal(`Alert: ${alert.rule}`)}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${alert.severity === 'critical' ? 'bg-red-100' : 'bg-orange-100'}`}>
                           <AlertTriangle className={`w-4 h-4 ${alert.severity === 'critical' ? 'text-red-500' : 'text-orange-500'}`} />

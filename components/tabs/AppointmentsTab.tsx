@@ -12,7 +12,7 @@ export function AppointmentsTab({ patientData, onUpdate }: { patientData: AppDat
       const res = await fetch('/api/reminders/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId: patientData.patient.id })
+        body: JSON.stringify({ patientId: (patientData as any).id })
       });
       if (res.ok) {
         if (onUpdate) onUpdate();

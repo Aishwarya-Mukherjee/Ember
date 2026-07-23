@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useTransform, animate, useReducedMotion } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate, useReducedMotion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Heart, Activity, Moon, BrainCircuit, Pill, Droplets } from "lucide-react";
@@ -102,6 +102,15 @@ const MagneticButton = ({ children, className, primary = false, onClick }: { chi
 export default function LandingPage() {
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const handlePortalTransition = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsTransitioning(true);
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 2000);
+  };
 
   // Animations
   const contentVariants = {
@@ -208,7 +217,7 @@ export default function LandingPage() {
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-5 mt-4">
-            <MagneticButton onClick={() => router.push('/dashboard')} primary className="px-8 py-3.5 rounded-full bg-teal-500 hover:bg-teal-600 text-white text-[14.5px] font-semibold shadow-[0_4px_16px_rgba(20,184,166,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:shadow-[0_8px_24px_rgba(20,184,166,0.4)] transition-all duration-300">
+            <MagneticButton onClick={handlePortalTransition} primary className="px-8 py-3.5 rounded-full bg-teal-500 hover:bg-teal-600 text-white text-[14.5px] font-semibold shadow-[0_4px_16px_rgba(20,184,166,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:shadow-[0_8px_24px_rgba(20,184,166,0.4)] transition-all duration-300">
               Request Access
             </MagneticButton>
             <MagneticButton className="px-8 py-3.5 rounded-full bg-white/60 backdrop-blur-md text-slate-700 text-[14.5px] font-medium border border-[rgba(0,0,0,0.04)] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)] hover:bg-white transition-all duration-300">
@@ -417,6 +426,54 @@ export default function LandingPage() {
         </div>
 
       </main>
+
+      {/* Loading Pulse Transition Overlay */}
+      <AnimatePresence>
+        {isTransitioning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 bg-[#FAFAFA] flex flex-col items-center justify-center gap-6"
+          >
+            <div className="relative flex items-center justify-center w-36 h-36">
+              {/* Circular glow pulse */}
+              <motion.div 
+                animate={{ scale: [1, 1.25, 1], opacity: [0.15, 0.4, 0.15] }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 bg-teal-500/20 rounded-full blur-2xl"
+              />
+              {/* Radial ring pulse */}
+              <div className="absolute w-20 h-20 rounded-full border border-teal-500/30 animate-ping" />
+              
+              <svg className="w-24 h-24 text-teal-500 z-10" viewBox="0 0 100 40">
+                <motion.path
+                  d="M10,20 L35,20 L42,5 L50,35 L58,15 L63,20 L90,20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 1.85, ease: "easeInOut" }}
+                />
+              </svg>
+            </div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-sm font-semibold tracking-[0.25em] text-teal-600 uppercase animate-pulse"
+            >
+              Syncing Vitals
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
     <ProblemSection />
     </>

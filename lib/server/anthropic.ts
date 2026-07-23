@@ -5,6 +5,10 @@ import { LLMExtractionSchema } from '../validations';
 const apiKey = process.env.ANTHROPIC_API_KEY || 'missing_key';
 const anthropic = new Anthropic({ apiKey });
 
+export function getAnthropicClient() {
+  return anthropic;
+}
+
 export async function extractHealthDataFromText(text: string): Promise<z.infer<typeof LLMExtractionSchema>> {
   if (apiKey === 'missing_key') {
     throw new Error('ANTHROPIC_API_KEY not configured on server');
@@ -88,6 +92,37 @@ CRITICAL REQUIREMENTS:
   } catch (error) {
     console.error("[Anthropic] Insight generation failed:", error);
     return "Please consult your doctor regarding these recent readings.";
+  }
+}
+
+export async function generateWellnessTip(patientContext: string): Promise<string> {
+  if (apiKey === 'missing_key') {
+    return "Drink plenty of water and stay hydrated. *This is a general lifestyle tip, not medical advice.*";
+  }
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-haiku-latest',
+      max_tokens: 200,
+      system: `You are a positive health and wellness coach. Based on the patient's recent data, generate ONE short, encouraging, and actionable daily lifestyle tip (e.g. hydration, light movement, sleep hygiene).
+
+CRITICAL REQUIREMENTS:
+- Keep it under 2 sentences.
+- DO NOT provide medical advice or diagnosis.
+- Make it sound like a friendly tip, not an alarm.
+- You MUST end the tip exactly with this disclaimer line: "*This is a general lifestyle tip, not medical advice.*"`,
+      messages: [{ role: 'user', content: `Recent data: ${patientContext}` }],
+    });
+
+    const contentBlock = response.content.find((c) => c.type === 'text');
+    if (!contentBlock || contentBlock.type !== 'text') {
+      return "Take a moment to stretch and breathe deeply today. *This is a general lifestyle tip, not medical advice.*";
+    }
+    
+    return contentBlock.text;
+  } catch (error) {
+    console.error("[Anthropic] Wellness tip generation failed:", error);
+    return "Take a moment to stretch and breathe deeply today. *This is a general lifestyle tip, not medical advice.*";
   }
 }
 

@@ -54,9 +54,9 @@ export default function PrintReportPage() {
           <p className="text-sm text-slate-500 mt-1">Generated: {new Date().toLocaleDateString()}</p>
         </div>
         <div className="text-right">
-          <h3 className="text-2xl font-bold">{patientData.patient.name}</h3>
-          <p className="text-slate-600 font-medium">Patient ID: {patientData.patient.id.split('-')[0].toUpperCase()}</p>
-          <p className="text-slate-600 font-medium">Age: {patientData.patient.age} | Condition: <span className="capitalize">{patientData.patient.condition.replace(/_/g, ' ')}</span></p>
+          <h3 className="text-2xl font-bold">{(patientData as any).name}</h3>
+          <p className="text-slate-600 font-medium">Patient ID: {(patientData as any).id.split('-')[0].toUpperCase()}</p>
+          <p className="text-slate-600 font-medium">Age: {(patientData as any).age} | Condition: <span className="capitalize">{(patientData as any).condition.replace(/_/g, ' ')}</span></p>
         </div>
       </div>
 
