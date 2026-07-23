@@ -10,6 +10,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import DoctorCanvas from "@/components/DoctorCanvas";
+import { SmartReminderManager } from "@/components/SmartReminderManager";
 import { MedicationsTab } from "@/components/tabs/MedicationsTab";
 import { VitalsTab } from "@/components/tabs/VitalsTab";
 import { SymptomsTab } from "@/components/tabs/SymptomsTab";
@@ -477,7 +478,7 @@ function DashboardContent() {
         ) : tab === "insights" ? (
           <InsightsTab patientData={safeData} />
         ) : tab === "appointments" ? (
-          <AppointmentsTab patientData={safeData} />
+          <AppointmentsTab patientData={safeData} onUpdate={() => mutatePatient()} />
         ) : tab === "check-in" ? (
           <CheckInTab patientData={safeData} />
         ) : tab === "reports" ? (
@@ -631,6 +632,11 @@ function DashboardContent() {
           )}
         </DialogContent>
       </Dialog>
+      
+      <SmartReminderManager 
+        reminders={safeData.reminders || []} 
+        onUpdate={() => mutatePatient()} 
+      />
 
     </div>
   );
