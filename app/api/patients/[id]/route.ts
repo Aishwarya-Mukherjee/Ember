@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { mockAppData } from '@/data/seed';
+import prisma from '@/lib/prisma';
 
 export async function GET(
   request: Request,
@@ -12,17 +12,28 @@ export async function GET(
       return NextResponse.json({ error: 'Patient ID is required' }, { status: 400 });
     }
 
-    // Return the mocked data from seed.ts so the dashboard works without a database
-    return NextResponse.json({
-      ...mockAppData.patient,
-      vitals: mockAppData.vitals,
-      medications: mockAppData.patient.medications.map((m, i) => ({ id: `med_${i}`, name: m })),
-      alerts: mockAppData.alerts,
-      symptoms: mockAppData.symptoms,
-      checkIns: mockAppData.checkIns,
-      reminders: mockAppData.reminders,
-      medicationLogs: mockAppData.medicationLogs,
+    // Fetch patient data from database
+    const patient = await prisma.patient.findUnique({
+      where: { id },
+      include: {
+        medications: true,
+        alerts: {
+          orderBy: { triggeredAt: 'desc' },
+          take: 5
+        },
+        symptoms: {
+          orderBy: { timestamp: 'desc' },
+          take: 5
+        },
+        reminders: true,
+      }
     });
+
+    if (!patient) {
+      return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(patient);
   } catch (error) {
     console.error('[PATIENT_API_ERROR]', error);
     return NextResponse.json({ error: 'Failed to fetch patient data' }, { status: 500 });

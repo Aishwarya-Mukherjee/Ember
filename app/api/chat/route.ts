@@ -40,13 +40,18 @@ export async function POST(request: Request) {
           });
         }
         if (extractedData.vitals.bloodPressure) {
-          // split "120/80" -> store as systolic for MVP, or just store string? 
-          // Our model says 'value' is Float. We can store systolic for simplicity, or handle it via a separate field. 
-          // For now, parse systolic if available:
-          const sys = parseFloat(extractedData.vitals.bloodPressure.split('/')[0]);
+          const parts = extractedData.vitals.bloodPressure.split('/');
+          const sys = parseFloat(parts[0]);
+          const dia = parts.length > 1 ? parseFloat(parts[1]) : NaN;
+          
           if (!isNaN(sys)) {
             await tx.vitalsEntry.create({
               data: { patientId, type: 'blood_pressure', value: sys, unit: 'mmHg', timestamp: new Date() }
+            });
+          }
+          if (!isNaN(dia)) {
+            await tx.vitalsEntry.create({
+              data: { patientId, type: 'blood_pressure_diastolic', value: dia, unit: 'mmHg', timestamp: new Date() }
             });
           }
         }

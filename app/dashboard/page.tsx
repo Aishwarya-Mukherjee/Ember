@@ -1,6 +1,6 @@
 "use client";
 
-import { AppData, VitalsEntry } from "@/lib/types";
+import { AppData, VitalsEntry, SymptomLog } from "@/lib/types";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { motion } from "framer-motion";
@@ -10,6 +10,14 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import DoctorCanvas from "@/components/DoctorCanvas";
+import { MedicationsTab } from "@/components/tabs/MedicationsTab";
+import { VitalsTab } from "@/components/tabs/VitalsTab";
+import { SymptomsTab } from "@/components/tabs/SymptomsTab";
+import { InsightsTab } from "@/components/tabs/InsightsTab";
+import { AppointmentsTab } from "@/components/tabs/AppointmentsTab";
+import { CheckInTab } from "@/components/tabs/CheckInTab";
+import { ReportsTab } from "@/components/tabs/ReportsTab";
+import { CareCircleTab } from "@/components/tabs/CareCircleTab";
 
 const Sparkline = ({ data, color }: { data: number[], color: string }) => (
   <div className="h-8 mt-2 -mx-1">
@@ -31,21 +39,165 @@ const GlassPanel = ({ children, className = "" }: { children: React.ReactNode, c
 );
 
 function DashboardContent() {
-  const { data, error, isLoading } = useSWR<AppData>('/api/patients/patient_001', fetcher);
+  const { data: patientData, error: patientError, isLoading: patientLoading, mutate: mutatePatient } = useSWR<AppData>('/api/patients/patient_001', fetcher);
+  const { data: vitalsData, error: vitalsError, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR<VitalsEntry[]>('/api/vitals?patientId=patient_001', fetcher);
+  const { data: symptomsData, error: symptomsError, isLoading: symptomsLoading, mutate: mutateSymptoms } = useSWR<SymptomLog[]>('/api/symptoms?patientId=patient_001', fetcher);
+
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "dashboard";
 
-  // Prevent crashes on initial load if data is null (though isLoading catches it)
-  const safeData: AppData = data || ({} as AppData);
+  // Form states
+  const [checkInText, setCheckInText] = useState("");
+  const [vitalBP, setVitalBP] = useState("");
+  const [vitalSugar, setVitalSugar] = useState("");
+  const [vitalHR, setVitalHR] = useState("");
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Prevent crashes on initial load
+  const safeData: AppData = patientData || ({} as AppData);
+  const alerts = safeData.alerts || [];
+  const topAlert = alerts.length > 0 ? alerts[0] : null;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  if (isLoading) {
+  const handleCheckIn = async () => {
+    if (!checkInText.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patientId: 'patient_001', text: checkInText }),
+      });
+      if (res.ok) {
+        showToast("Check-in saved!");
+        setActiveModal(null);
+        setCheckInText("");
+        mutatePatient();
+        mutateVitals();
+        mutateSymptoms();
+      } else {
+        showToast("Failed to save check-in");
+      }
+    } catch (e) {
+      showToast("Error saving check-in");
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleLogVitals = async () => {
+    setIsSubmitting(true);
+    try {
+      const postVital = async (type: string, value: number, unit: string) => {
+        return fetch('/api/vitals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patientId: 'patient_001', type, value, unit }),
+        });
+      };
+
+      const promises = [];
+      if (vitalBP) {
+        const parts = vitalBP.split('/');
+        const sys = parseFloat(parts[0]);
+        const dia = parts.length > 1 ? parseFloat(parts[1]) : NaN;
+        if (!isNaN(sys)) promises.push(postVital('blood_pressure', sys, 'mmHg'));
+        if (!isNaN(dia)) promises.push(postVital('blood_pressure_diastolic', dia, 'mmHg'));
+      }
+      if (vitalSugar) {
+        const val = parseFloat(vitalSugar);
+        if (!isNaN(val)) promises.push(postVital('blood_sugar', val, 'mg/dL'));
+      }
+      if (vitalHR) {
+        const val = parseFloat(vitalHR);
+        if (!isNaN(val)) promises.push(postVital('heart_rate', val, 'bpm'));
+      }
+      
+      if (promises.length > 0) {
+        await Promise.all(promises);
+        showToast("Vitals logged successfully!");
+        setVitalBP(""); setVitalSugar(""); setVitalHR("");
+      }
+      setActiveModal(null);
+      mutateVitals();
+      mutatePatient();
+    } catch (e) {
+      showToast("Error saving vitals");
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleLogSymptoms = async () => {
+    if (selectedSymptoms.length === 0) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/symptoms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          patientId: 'patient_001', 
+          symptoms: selectedSymptoms, 
+          severity: 2, 
+          rawText: "Logged from UI checkboxes" 
+        }),
+      });
+      if (res.ok) {
+        showToast("Symptom log updated!");
+        setActiveModal(null);
+        setSelectedSymptoms([]);
+        mutateSymptoms();
+        mutatePatient();
+      } else {
+        showToast("Failed to log symptoms");
+      }
+    } catch (e) {
+      showToast("Error saving symptoms");
+    }
+    setIsSubmitting(false);
+  };
+
+  const toggleSymptom = (sym: string) => {
+    if (selectedSymptoms.includes(sym)) {
+      setSelectedSymptoms(selectedSymptoms.filter(s => s !== sym));
+    } else {
+      setSelectedSymptoms([...selectedSymptoms, sym]);
+    }
+  };
+
+  const renderVitalCard = (type: string, title: string, icon: React.ReactNode, color: string, defaultUnit: string) => {
+    const data = vitalsData?.filter((v: VitalsEntry) => v.type === type) || [];
+    if (data.length === 0) {
+      return (
+        <div className="bg-white/50 rounded-2xl p-3 border border-slate-100 opacity-50 flex flex-col justify-between">
+          <div className="flex justify-between">
+            <span className="text-xs font-bold text-slate-500">{title}</span>
+            {icon}
+          </div>
+          <p className="text-sm font-black text-slate-400 mt-2 flex-1 flex items-center">No data</p>
+        </div>
+      );
+    }
+    const sparkline = data.slice(0, 6).reverse().map((v: VitalsEntry) => v.value);
+    return (
+      <div className="bg-white/50 rounded-2xl p-3 border border-slate-100">
+        <div className="flex justify-between">
+          <span className="text-xs font-bold text-slate-500">{title}</span>
+          {icon}
+        </div>
+        <p className="text-xl font-black text-slate-800 mt-1">{data[0].value}</p>
+        <p className="text-xs text-slate-500">{data[0].unit || defaultUnit}</p>
+        <Sparkline data={sparkline} color={color} />
+      </div>
+    );
+  };
+
+  if (patientLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500">
         <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4" />
@@ -54,14 +206,14 @@ function DashboardContent() {
     );
   }
 
-  if (error || !data) {
+  if (patientError || !patientData) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
           <AlertTriangle className="w-8 h-8 text-red-500" />
         </div>
         <p className="font-bold text-slate-800 text-lg">Error loading data</p>
-        <p className="text-sm">{(error as any)?.info?.error || "Please try again later."}</p>
+        <p className="text-sm">{(patientError as any)?.info?.error || "Please try again later."}</p>
       </div>
     );
   }
@@ -97,7 +249,7 @@ function DashboardContent() {
 
           <div className="flex items-center gap-4">
             <button
-              onClick={() => showToast("Generating PDF Summary...")}
+              onClick={() => window.open("/report/print", "_blank")}
               className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition-colors"
             >
               <FileDown className="w-4 h-4" />
@@ -236,65 +388,51 @@ function DashboardContent() {
                   <h3 className="font-bold text-slate-800">Vitals Overview</h3>
                   <div className="flex items-center gap-1 text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-full"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live</div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/50 rounded-2xl p-3 border border-slate-100">
-                    <div className="flex justify-between">
-                      <span className="text-xs font-bold text-slate-500">BP</span>
-                      <Activity className="w-3 h-3 text-red-500" />
-                    </div>
-                    <p className="text-xl font-black text-slate-800 mt-1">120/80</p>
-                    <p className="text-xs text-slate-500">mmHg</p>
-                    <Sparkline data={[118, 122, 119, 120, 121, 120]} color="#ef4444" />
+                {vitalsLoading ? (
+                  <div className="h-40 flex items-center justify-center text-slate-400 font-medium text-sm gap-2">
+                    <div className="w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                    Loading vitals...
                   </div>
-                  <div className="bg-white/50 rounded-2xl p-3 border border-slate-100">
-                    <div className="flex justify-between">
-                      <span className="text-xs font-bold text-slate-500">Heart Rate</span>
-                      <Heart className="w-3 h-3 text-red-500" />
-                    </div>
-                    <p className="text-xl font-black text-slate-800 mt-1">72</p>
-                    <p className="text-xs text-slate-500">bpm</p>
-                    <Sparkline data={[75, 74, 71, 72, 72, 73]} color="#ef4444" />
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {renderVitalCard('blood_pressure', 'BP', <Activity className="w-3 h-3 text-red-500" />, '#ef4444', 'mmHg')}
+                    {renderVitalCard('heart_rate', 'Heart Rate', <Heart className="w-3 h-3 text-red-500" />, '#ef4444', 'bpm')}
+                    {renderVitalCard('blood_sugar', 'Blood Sugar', <Droplet className="w-3 h-3 text-cyan-500" />, '#06b6d4', 'mg/dL')}
+                    {renderVitalCard('weight', 'Weight', <Scale className="w-3 h-3 text-slate-500" />, '#64748b', 'kg')}
                   </div>
-                  <div className="bg-white/50 rounded-2xl p-3 border border-slate-100">
-                    <div className="flex justify-between">
-                      <span className="text-xs font-bold text-slate-500">Blood Sugar</span>
-                      <Droplet className="w-3 h-3 text-cyan-500" />
-                    </div>
-                    <p className="text-xl font-black text-slate-800 mt-1">98</p>
-                    <p className="text-xs text-slate-500">mg/dL</p>
-                    <Sparkline data={[102, 100, 99, 98, 97, 98]} color="#06b6d4" />
-                  </div>
-                  <div className="bg-white/50 rounded-2xl p-3 border border-slate-100">
-                    <div className="flex justify-between">
-                      <span className="text-xs font-bold text-slate-500">Weight</span>
-                      <Scale className="w-3 h-3 text-slate-500" />
-                    </div>
-                    <p className="text-xl font-black text-slate-800 mt-1">68</p>
-                    <p className="text-xs text-slate-500">kg</p>
-                    <Sparkline data={[68.5, 68.3, 68.2, 68.1, 68.0, 68.0]} color="#64748b" />
-                  </div>
-                </div>
+                )}
               </GlassPanel>
 
               {/* AI Insight */}
               <GlassPanel className="relative overflow-hidden">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-3">
-                  <BrainCircuit className="w-4 h-4 text-cyan-500" /> AI Insight
-              </h3>
-              <p className="text-sm text-slate-600 leading-relaxed relative z-10 font-medium">
-                  Your blood pressure is stable and within normal range. Great job maintaining your health!
-              </p>
-              <button onClick={() => setActiveModal("Insights")}
-                  className="mt-4 px-4 py-2 bg-cyan-600 text-white text-xs font-bold rounded-xl shadow-md z-10 relative hover:shadow-lg hover:bg-cyan-700 transition-all"
-              >
-                  View Details
-              </button>
-              
-              <div className="mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400">
-                AI insights are for informational purposes only. Consult your doctor.
-              </div>
-              
-              <div className="absolute right-[-20px] top-1/2 -translate-y-1/2 w-24 h-24 bg-cyan-400/30 blur-xl rounded-full" />
+                <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-3">
+                    <BrainCircuit className="w-4 h-4 text-cyan-500" /> AI Insight
+                </h3>
+                {patientLoading ? (
+                  <div className="animate-pulse h-12 bg-slate-100 rounded-xl w-full"></div>
+                ) : topAlert ? (
+                  <p className="text-sm text-slate-600 leading-relaxed relative z-10 font-medium">
+                      {topAlert.insight}
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-600 leading-relaxed relative z-10 font-medium opacity-70">
+                      No new insights at this time.
+                  </p>
+                )}
+                
+                {topAlert && (
+                  <button onClick={() => setActiveModal(`Alert: ${topAlert.rule}`)}
+                      className="mt-4 px-4 py-2 bg-cyan-600 text-white text-xs font-bold rounded-xl shadow-md z-10 relative hover:shadow-lg hover:bg-cyan-700 transition-all"
+                  >
+                      View Details
+                  </button>
+                )}
+                
+                <div className="mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400">
+                  AI insights are for informational purposes only. Consult your doctor.
+                </div>
+                
+                <div className="absolute right-[-20px] top-1/2 -translate-y-1/2 w-24 h-24 bg-cyan-400/30 blur-xl rounded-full" />
               </GlassPanel>
 
               {/* Recent Alerts */}
@@ -303,31 +441,49 @@ function DashboardContent() {
                   <h3 className="font-bold text-slate-800">Recent Alerts</h3>
                   <span onClick={() => setActiveModal("All Alerts")} className="text-xs font-bold text-cyan-600 cursor-pointer hover:underline">View all</span>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex gap-3 items-center bg-white/40 p-3 rounded-xl border border-white/60 cursor-pointer hover:bg-white/60 transition-colors" onClick={() => setActiveModal("Alert: High BP")}>
-                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                      <AlertTriangle className="w-4 h-4 text-red-500" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-slate-800">High BP Reading</p>
-                      <p className="text-xs text-slate-500">Today, 7:45 AM</p>
-                    </div>
-                    <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full">New</span>
+                {patientLoading ? (
+                  <div className="space-y-3">
+                    <div className="animate-pulse h-12 bg-slate-100 rounded-xl w-full"></div>
+                    <div className="animate-pulse h-12 bg-slate-100 rounded-xl w-full"></div>
                   </div>
-                  <div className="flex gap-3 items-center bg-white/40 p-3 rounded-xl border border-white/60 cursor-pointer hover:bg-white/60 transition-colors" onClick={() => setActiveModal("Alert: Missed Medication")}>
-                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                      <Pill className="w-4 h-4 text-orange-500" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-slate-800">Missed Medication</p>
-                      <p className="text-xs text-slate-500">Yesterday, 9:00 PM</p>
-                    </div>
+                ) : alerts.length === 0 ? (
+                  <div className="h-20 flex items-center justify-center text-slate-400 font-medium text-sm">No recent alerts.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {alerts.slice(0, 3).map((alert: any) => (
+                      <div key={alert.id} className="flex gap-3 items-center bg-white/40 p-3 rounded-xl border border-white/60 cursor-pointer hover:bg-white/60 transition-colors" onClick={() => setActiveModal(`Alert: ${alert.rule}`)}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${alert.severity === 'critical' ? 'bg-red-100' : 'bg-orange-100'}`}>
+                          <AlertTriangle className={`w-4 h-4 ${alert.severity === 'critical' ? 'text-red-500' : 'text-orange-500'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-slate-800 capitalize">{alert.rule.replace(/_/g, ' ')}</p>
+                          <p className="text-xs text-slate-500">{new Date(alert.triggeredAt).toLocaleDateString()}</p>
+                        </div>
+                        {alert.severity === 'critical' && <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full">New</span>}
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
               </GlassPanel>
 
             </div>
           </div>
+        ) : tab === "medications" ? (
+          <MedicationsTab patientData={safeData} />
+        ) : tab === "vitals" ? (
+          <VitalsTab vitalsData={vitalsData || []} />
+        ) : tab === "symptoms" ? (
+          <SymptomsTab symptomsData={symptomsData || []} />
+        ) : tab === "insights" ? (
+          <InsightsTab patientData={safeData} />
+        ) : tab === "appointments" ? (
+          <AppointmentsTab patientData={safeData} />
+        ) : tab === "check-in" ? (
+          <CheckInTab patientData={safeData} />
+        ) : tab === "reports" ? (
+          <ReportsTab patientData={safeData} />
+        ) : tab === "care-circle" ? (
+          <CareCircleTab patientData={safeData} />
         ) : (
           <div className="flex-1 max-w-7xl mx-auto w-full flex items-center justify-center">
             <div className="bg-white/50 backdrop-blur-xl border border-white/60 p-12 rounded-3xl text-center shadow-sm">
@@ -353,15 +509,19 @@ function DashboardContent() {
               </div>
               
               <textarea 
+                value={checkInText}
+                onChange={(e) => setCheckInText(e.target.value)}
                 className="w-full border border-slate-200 rounded-2xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 rows={4}
                 placeholder="Type your symptoms here..."
               ></textarea>
               
-              <button onClick={() => { setActiveModal(null); showToast("Check-in saved!"); }}
-                className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-2xl font-bold text-sm shadow-md"
+              <button 
+                onClick={handleCheckIn}
+                disabled={isSubmitting || !checkInText.trim()}
+                className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-2xl font-bold text-sm shadow-md disabled:opacity-50"
               >
-                Log Check-in
+                {isSubmitting ? "Saving..." : "Log Check-in"}
               </button>
             </div>
           )}
@@ -370,21 +530,22 @@ function DashboardContent() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-slate-600 block mb-1">Blood Pressure (mmHg)</label>
-                <input type="text" defaultValue="120/80" className="w-full border border-slate-200 rounded-xl p-2.5 text-sm" />
+                <input type="text" value={vitalBP} onChange={(e) => setVitalBP(e.target.value)} placeholder="120/80" className="w-full border border-slate-200 rounded-xl p-2.5 text-sm" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-600 block mb-1">Blood Sugar (mg/dL)</label>
-                <input type="number" defaultValue="98" className="w-full border border-slate-200 rounded-xl p-2.5 text-sm" />
+                <input type="number" value={vitalSugar} onChange={(e) => setVitalSugar(e.target.value)} placeholder="98" className="w-full border border-slate-200 rounded-xl p-2.5 text-sm" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-600 block mb-1">Heart Rate (bpm)</label>
-                <input type="number" defaultValue="72" className="w-full border border-slate-200 rounded-xl p-2.5 text-sm" />
+                <input type="number" value={vitalHR} onChange={(e) => setVitalHR(e.target.value)} placeholder="72" className="w-full border border-slate-200 rounded-xl p-2.5 text-sm" />
               </div>
               <button
-                onClick={() => { setActiveModal(null); showToast("Vitals logged successfully!"); }}
-                className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-2xl font-bold text-sm shadow-md"
+                onClick={handleLogVitals}
+                disabled={isSubmitting || (!vitalBP && !vitalSugar && !vitalHR)}
+                className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-2xl font-bold text-sm shadow-md disabled:opacity-50"
               >
-                Save Vitals Log
+                {isSubmitting ? "Saving..." : "Save Vitals Log"}
               </button>
             </div>
           )}
@@ -394,16 +555,21 @@ function DashboardContent() {
               <p className="text-sm text-slate-600">Select any symptoms experienced today:</p>
               <div className="flex flex-wrap gap-2">
                 {["Dizziness", "Fatigue", "Headache", "Nausea", "Shortness of Breath"].map((sym) => (
-                  <button key={sym} className="px-3 py-1.5 rounded-xl border border-cyan-200 text-cyan-700 text-xs font-semibold hover:bg-cyan-50">
-                    + {sym}
+                  <button 
+                    key={sym} 
+                    onClick={() => toggleSymptom(sym)}
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors ${selectedSymptoms.includes(sym) ? 'bg-cyan-500 text-white border-cyan-500' : 'border-cyan-200 text-cyan-700 hover:bg-cyan-50'}`}
+                  >
+                    {selectedSymptoms.includes(sym) ? "✓ " : "+ "}{sym}
                   </button>
                 ))}
               </div>
               <button
-                onClick={() => { setActiveModal(null); showToast("Symptom log updated!"); }}
-                className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-2xl font-bold text-sm shadow-md mt-2"
+                onClick={handleLogSymptoms}
+                disabled={isSubmitting || selectedSymptoms.length === 0}
+                className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-2xl font-bold text-sm shadow-md mt-2 disabled:opacity-50"
               >
-                Confirm Symptoms
+                {isSubmitting ? "Saving..." : "Confirm Symptoms"}
               </button>
             </div>
           )}

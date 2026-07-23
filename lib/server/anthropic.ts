@@ -59,3 +59,35 @@ The JSON MUST match the following format exactly:
     throw new Error("Failed to parse Anthropic response as JSON");
   }
 }
+
+export async function generateAlertInsight(rule: string, dataSummary: string): Promise<string> {
+  if (apiKey === 'missing_key') {
+    return "Please consult your doctor regarding these recent readings.";
+  }
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-haiku-latest',
+      max_tokens: 256,
+      system: `You are a helpful AI health assistant. You will be provided with a medical alert rule that triggered, and a summary of the data that triggered it. 
+Your job is to generate a short, 1-2 sentence plain-language explanation of the pattern for the patient. 
+
+CRITICAL REQUIREMENTS:
+- DO NOT diagnose the patient.
+- Keep it empathetic but professional.
+- You MUST include a medical disclaimer like "Please consult your doctor." or similar at the end.`,
+      messages: [{ role: 'user', content: `Rule: ${rule}\nData: ${dataSummary}` }],
+    });
+
+    const contentBlock = response.content.find((c) => c.type === 'text');
+    if (!contentBlock || contentBlock.type !== 'text') {
+      return "Please consult your doctor regarding these recent readings.";
+    }
+    
+    return contentBlock.text;
+  } catch (error) {
+    console.error("[Anthropic] Insight generation failed:", error);
+    return "Please consult your doctor regarding these recent readings.";
+  }
+}
+

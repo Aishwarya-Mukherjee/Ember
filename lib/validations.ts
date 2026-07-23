@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const VitalsSchema = z.object({
   patientId: z.string(),
-  type: z.enum(["blood_pressure", "blood_sugar", "weight", "heart_rate"]),
+  type: z.enum(["blood_pressure", "blood_pressure_diastolic", "blood_sugar", "weight", "heart_rate"]),
   value: z.number(),
   unit: z.string(),
   timestamp: z.string().datetime().optional(),

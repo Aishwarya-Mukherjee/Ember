@@ -1,9 +1,10 @@
 import prisma from '@/lib/prisma';
+import { generateAlertInsight } from '@/lib/server/anthropic';
 
 /**
  * Ensures an alert is only created if there isn't an active one of the same rule for this patient.
  */
-async function createAlert(patientId: string, rule: string, severity: 'warning' | 'critical', insight: string) {
+async function createAlert(patientId: string, rule: string, severity: 'warning' | 'critical', dataSummary: string) {
   const existingAlert = await prisma.riskAlert.findFirst({
     where: {
       patientId,
@@ -13,6 +14,7 @@ async function createAlert(patientId: string, rule: string, severity: 'warning' 
   });
 
   if (!existingAlert) {
+    const insight = await generateAlertInsight(rule, dataSummary);
     await prisma.riskAlert.create({
       data: {
         patientId,
@@ -28,33 +30,43 @@ async function createAlert(patientId: string, rule: string, severity: 'warning' 
 }
 
 /**
- * Rule: Dizziness reported 3 times within 7 days -> Medium Risk alert
+ * Rule: Flag if the same symptom is logged 3+ times in 7 days.
  */
 async function processSymptoms(patientId: string) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const recentDizziness = await prisma.symptomLog.count({
+  const recentLogs = await prisma.symptomLog.findMany({
     where: {
       patientId,
       timestamp: { gte: sevenDaysAgo },
-      symptoms: { hasSome: ['dizziness', 'dizzy', 'lightheaded'] },
     }
   });
 
-  if (recentDizziness >= 3) {
-    await createAlert(
-      patientId,
-      'dizziness_3x_week',
-      'warning',
-      "You've reported feeling dizzy 3 times in the last week. Please take care when standing up and consider contacting your doctor."
-    );
+  // Count occurrences of each symptom
+  const symptomCounts: Record<string, number> = {};
+  for (const log of recentLogs) {
+    for (const sym of log.symptoms) {
+      const lowerSym = sym.toLowerCase();
+      symptomCounts[lowerSym] = (symptomCounts[lowerSym] || 0) + 1;
+    }
+  }
+
+  for (const [symptom, count] of Object.entries(symptomCounts)) {
+    if (count >= 3) {
+      await createAlert(
+        patientId,
+        `recurrent_symptom_${symptom.replace(/\s+/g, '_')}`,
+        'warning',
+        `Patient reported '${symptom}' ${count} times in the last 7 days.`
+      );
+    }
   }
 }
 
 /**
  * Rule: Blood sugar consistently >200 mg/dL for 14 days -> High Risk alert
- * Rule: Blood pressure repeatedly above threshold (e.g. > 140 systolic on last 3 readings) -> Alert
+ * Rule: Blood pressure repeatedly above threshold (>140 sys OR >90 dia on last 3 readings) -> Alert
  */
 async function processVitals(patientId: string) {
   const fourteenDaysAgo = new Date();
@@ -71,24 +83,62 @@ async function processVitals(patientId: string) {
       patientId,
       'sugar_high_14_days',
       'critical',
-      "Your blood sugar has been consistently over 200 mg/dL for the past 14 days. This requires medical attention."
+      `Blood sugar consistently over 200 mg/dL (latest: ${recentSugars[0].value}).`
     );
   }
 
-  // Blood pressure check (systolic > 140 on last 3 readings)
-  const recentBPs = await prisma.vitalsEntry.findMany({
+  // Blood pressure check
+  const recentSys = await prisma.vitalsEntry.findMany({
     where: { patientId, type: 'blood_pressure' },
     orderBy: { timestamp: 'desc' },
     take: 3
   });
+  
+  const recentDia = await prisma.vitalsEntry.findMany({
+    where: { patientId, type: 'blood_pressure_diastolic' },
+    orderBy: { timestamp: 'desc' },
+    take: 3
+  });
 
-  if (recentBPs.length === 3 && recentBPs.every(bp => bp.value > 140)) {
+  const sysHigh = recentSys.length === 3 && recentSys.every(bp => bp.value > 140);
+  const diaHigh = recentDia.length === 3 && recentDia.every(bp => bp.value > 90);
+
+  if (sysHigh || diaHigh) {
+    const sysVals = recentSys.map(bp => bp.value).join(', ');
+    const diaVals = recentDia.map(bp => bp.value).join(', ');
     await createAlert(
       patientId,
       'bp_high_repeated',
       'warning',
-      "Your systolic blood pressure has been over 140 for your last 3 readings. Please monitor closely."
+      `Blood pressure elevated for 3 consecutive readings. Systolic: [${sysVals}], Diastolic: [${diaVals}].`
     );
+  }
+}
+
+/**
+ * Rule: Flag missed medication 2+ times in a row.
+ */
+async function processMedications(patientId: string) {
+  // Get all medications for this patient
+  const medications = await prisma.medication.findMany({
+    where: { patientId },
+    include: {
+      medicationLogs: {
+        orderBy: { takenAt: 'desc' },
+        take: 2
+      }
+    }
+  });
+
+  for (const med of medications) {
+    if (med.medicationLogs.length === 2 && med.medicationLogs.every(log => log.status === 'missed')) {
+      await createAlert(
+        patientId,
+        `medication_missed_consecutively_${med.id}`,
+        'warning',
+        `Patient missed taking ${med.name} for 2 consecutive scheduled doses.`
+      );
+    }
   }
 }
 
@@ -99,6 +149,7 @@ export async function evaluatePatientRisk(patientId: string) {
   try {
     await processSymptoms(patientId);
     await processVitals(patientId);
+    await processMedications(patientId);
   } catch (error) {
     console.error(`[RiskEngine] Failed to evaluate risks for patient ${patientId}:`, error);
   }
