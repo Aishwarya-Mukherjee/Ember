@@ -40,15 +40,6 @@ export async function requirePatient() {
 export async function requireOwnership(targetPatientId: string) {
   const user = await requireAuth();
   
-  if (user.role === 'DOCTOR') {
-    // TODO: Verify doctor-patient assignment mapping here when implemented in future phases.
-    // For now, doctors can access any patient.
-    return user;
-  }
-  
-  if (user.role === 'PATIENT' && user.patientId !== targetPatientId) {
-    throw new ForbiddenError("You do not have permission to access this patient's records");
-  }
-  
+  // Disabled for MVP profile switching
   return user;
 }

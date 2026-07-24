@@ -234,6 +234,87 @@ async function main() {
     skipDuplicates: true,
   });
   console.log(`Created check-ins`);
+  
+  // Patient 2
+  const patient2 = await prisma.patient.upsert({
+    where: { id: "patient_002" },
+    update: {},
+    create: {
+      id: "patient_002",
+      name: "Rajesh Kumar",
+      age: 70,
+      condition: "hypertension",
+      medications: {
+        create: [
+          { id: "med_3", name: "Amlodipine 5mg" }
+        ]
+      }
+    }
+  });
+  console.log('Created patient:', patient2.name);
+
+  // Patient 3
+  const patient3 = await prisma.patient.upsert({
+    where: { id: "patient_003" },
+    update: {},
+    create: {
+      id: "patient_003",
+      name: "Sarah Jenkins",
+      age: 35,
+      condition: "asthma",
+      medications: {
+        create: [
+          { id: "med_4", name: "Albuterol Inhaler" }
+        ]
+      }
+    }
+  });
+  console.log('Created patient:', patient3.name);
+
+  
+  // Create vitals for Rajesh
+  await prisma.vitalsEntry.createMany({
+    data: [
+      { patientId: "patient_002", timestamp: new Date(Date.now() - 5*86400000), type: "blood_pressure", value: 145, unit: "mmHg" },
+      { patientId: "patient_002", timestamp: new Date(Date.now() - 2*86400000), type: "blood_pressure", value: 150, unit: "mmHg" },
+      { patientId: "patient_002", timestamp: new Date(), type: "blood_pressure", value: 155, unit: "mmHg" }
+    ]
+  });
+
+  await prisma.symptomLog.createMany({
+    data: [
+      { patientId: "patient_002", timestamp: new Date(Date.now() - 3*86400000), symptoms: ["headache"], severity: 3, rawText: "Strong headache in the morning." },
+      { patientId: "patient_002", timestamp: new Date(Date.now() - 1*86400000), symptoms: ["blurry vision"], severity: 2, rawText: "Vision felt a bit blurry." }
+    ]
+  });
+  
+  await prisma.reminder.createMany({
+    data: [
+      { patientId: "patient_002", type: "medication", label: "Amlodipine 5mg", scheduledAt: new Date(Date.now() - 1*86400000), status: "missed", missedCount: 1 },
+      { patientId: "patient_002", type: "medication", label: "Amlodipine 5mg", scheduledAt: new Date(), status: "missed", missedCount: 2 }
+    ]
+  });
+
+  await prisma.riskAlert.createMany({
+    data: [
+      { patientId: "patient_002", triggeredAt: new Date(), rule: "bp_high", severity: "critical", insight: "Blood pressure is trending high (155 mmHg). Missed medication.", dismissed: false }
+    ]
+  });
+
+  // Create data for Sarah
+  await prisma.vitalsEntry.createMany({
+    data: [
+      { patientId: "patient_003", timestamp: new Date(Date.now() - 2*86400000), type: "oxygen_saturation", value: 94, unit: "%" },
+      { patientId: "patient_003", timestamp: new Date(Date.now() - 1*86400000), type: "oxygen_saturation", value: 96, unit: "%" }
+    ]
+  });
+
+  await prisma.symptomLog.createMany({
+    data: [
+      { patientId: "patient_003", timestamp: new Date(Date.now() - 2*86400000), symptoms: ["wheezing", "shortness of breath"], severity: 4, rawText: "Hard to breathe after walking up stairs." }
+    ]
+  });
+
   console.log(`Seeding finished.`);
 }
 

@@ -20,7 +20,7 @@ export type VitalsEntry = {
   id: string;
   patientId: string;
   timestamp: string; // ISO string
-  type: "blood_pressure" | "blood_sugar" | "weight" | "heart_rate";
+  type: "blood_pressure" | "blood_pressure_diastolic" | "blood_sugar" | "weight" | "heart_rate" | "oxygen_saturation";
   value: number;
   unit: string;
 };
@@ -62,8 +62,7 @@ export type CheckIn = {
   mood?: string;
 };
 
-export type AppData = {
-  patient: Patient;
+export type AppData = Patient & {
   symptoms: SymptomLog[];
   vitals: VitalsEntry[];
   reminders: Reminder[];
