@@ -581,7 +581,7 @@ function DashboardContent() {
             </div>
           </div>
         ) : tab === "medications" ? (
-          <MedicationsTab patientData={safeData} />
+          <MedicationsTab patientData={safeData} onUpdate={() => mutatePatient()} />
         ) : tab === "vitals" ? (
           <VitalsTab vitalsData={vitalsData || []} />
         ) : tab === "symptoms" ? (

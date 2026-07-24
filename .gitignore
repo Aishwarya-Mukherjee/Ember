@@ -50,3 +50,13 @@ next-env.d.ts
 skills-lock.json
 AGENTS.md
 CLAUDE.md
+
+# IDEs and Editors
+/.vscode
+/.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+

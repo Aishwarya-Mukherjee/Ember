@@ -13,6 +13,7 @@ export function SmartReminderManager({
 }) {
   const [activeReminder, setActiveReminder] = useState<Reminder | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showReasonSelector, setShowReasonSelector] = useState(false);
 
   // Check for due reminders every 30 seconds
   useEffect(() => {
@@ -37,8 +38,16 @@ export function SmartReminderManager({
     return () => clearInterval(interval);
   }, [reminders, activeReminder]);
 
-  const handleAction = async (action: 'done' | 'snooze' | 'missed') => {
+  const handleAction = async (action: 'done' | 'snooze' | 'missed', reason?: string) => {
     if (!activeReminder) return;
+    
+    // If user clicked 'missed' on a medication reminder but hasn't selected a reason yet,
+    // we want to show the reason selector. We handle this locally by setting a state.
+    if (action === 'missed' && activeReminder.type === 'medication' && !reason && !showReasonSelector) {
+      setShowReasonSelector(true);
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -60,7 +69,8 @@ export function SmartReminderManager({
         body: JSON.stringify({
           id: activeReminder.id,
           status: newStatus,
-          scheduledAt: newScheduledAt
+          scheduledAt: newScheduledAt,
+          missedReason: reason,
         })
       });
 
@@ -71,6 +81,7 @@ export function SmartReminderManager({
       console.error("Failed to update reminder", e);
     } finally {
       setActiveReminder(null);
+      setShowReasonSelector(false);
       setIsProcessing(false);
     }
   };
@@ -78,6 +89,7 @@ export function SmartReminderManager({
   if (!activeReminder) return null;
 
   const isMed = activeReminder.type === 'medication';
+  const missedReasons = ['Forgot', 'Side effects', 'Ran out', 'Felt fine', 'Other'];
 
   return (
     <div className="fixed bottom-6 right-6 z-[100] w-80 bg-white border-2 border-slate-900 rounded-3xl p-5 shadow-2xl animate-in slide-in-from-bottom-5">
@@ -97,30 +109,54 @@ export function SmartReminderManager({
       
       <p className="text-sm font-medium text-slate-800 mb-5">{activeReminder.label}</p>
       
-      <div className="flex gap-2">
-        <button 
-          onClick={() => handleAction('done')}
-          disabled={isProcessing}
-          className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl flex justify-center items-center gap-1 transition-colors disabled:opacity-50"
-        >
-          <Check className="w-4 h-4" /> Done
-        </button>
-        <button 
-          onClick={() => handleAction('snooze')}
-          disabled={isProcessing}
-          className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 rounded-xl transition-colors disabled:opacity-50"
-        >
-          Snooze 30m
-        </button>
-        <button 
-          onClick={() => handleAction('missed')}
-          disabled={isProcessing}
-          className="w-10 bg-slate-100 hover:bg-red-100 hover:text-red-600 text-slate-400 font-bold text-xs py-2 rounded-xl flex justify-center items-center transition-colors disabled:opacity-50"
-          title="Dismiss / Missed"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+      {showReasonSelector ? (
+        <div className="space-y-3 animate-in fade-in zoom-in duration-200">
+          <p className="text-xs font-bold text-slate-600 mb-2">Why did you miss this dose?</p>
+          <div className="flex flex-wrap gap-2">
+            {missedReasons.map(r => (
+              <button 
+                key={r}
+                onClick={() => handleAction('missed', r)}
+                disabled={isProcessing}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={() => setShowReasonSelector(false)}
+            className="w-full text-center text-xs text-slate-400 hover:text-slate-600 mt-2 font-medium transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <button 
+            onClick={() => handleAction('done')}
+            disabled={isProcessing}
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl flex justify-center items-center gap-1 transition-colors disabled:opacity-50"
+          >
+            <Check className="w-4 h-4" /> Done
+          </button>
+          <button 
+            onClick={() => handleAction('snooze')}
+            disabled={isProcessing}
+            className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 rounded-xl transition-colors disabled:opacity-50"
+          >
+            Snooze 30m
+          </button>
+          <button 
+            onClick={() => handleAction('missed')}
+            disabled={isProcessing}
+            className="w-10 bg-slate-100 hover:bg-red-100 hover:text-red-600 text-slate-400 font-bold text-xs py-2 rounded-xl flex justify-center items-center transition-colors disabled:opacity-50"
+            title="Dismiss / Missed"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

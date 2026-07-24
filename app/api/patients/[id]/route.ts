@@ -34,6 +34,9 @@ export async function GET(
           take: 10
         },
         reminders: true,
+        medicationLogs: {
+          orderBy: { takenAt: 'desc' }
+        },
       }
     });
 

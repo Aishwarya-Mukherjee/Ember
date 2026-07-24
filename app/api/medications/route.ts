@@ -39,6 +39,8 @@ export async function POST(request: Request) {
       data: {
         patientId: data.patientId,
         name: data.name,
+        dosage: data.dosage,
+        frequency: data.frequency,
       },
     });
     return NextResponse.json(medication, { status: 201 });

@@ -3,7 +3,7 @@ export type Patient = {
   name: string;
   age: number;
   condition: "diabetes" | "hypertension" | "asthma" | "heart_disease";
-  medications: { id: string; name: string }[];
+  medications: { id: string; name: string; dosage?: string; frequency?: string }[];
   caregiverId?: string;
 };
 
@@ -52,6 +52,7 @@ export type MedicationLog = {
   takenAt: string; // ISO string
   status: "taken" | "missed" | "skipped";
   notes?: string;
+  missedReason?: string;
 };
 
 export type CheckIn = {

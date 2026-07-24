@@ -53,6 +53,8 @@ model Medication {
   id        String   @id @default(uuid())
   patientId String
   name      String
+  dosage    String?
+  frequency String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -135,6 +137,7 @@ model MedicationLog {
   takenAt      DateTime
   status       String // "taken" | "missed" | "skipped"
   notes        String?
+  missedReason String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

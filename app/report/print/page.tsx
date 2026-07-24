@@ -86,6 +86,34 @@ export default function PrintReportPage() {
             )}
           </section>
 
+          {/* Missed Dose Reasons */}
+          <section>
+            <h3 className="text-lg font-bold border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider text-slate-800">
+              Missed Dose Reasons
+            </h3>
+            {(() => {
+              const missedLogs = (patientData.medicationLogs || []).filter((log: any) => log.status === 'missed');
+              if (missedLogs.length === 0) {
+                return <p className="text-slate-500 text-sm">No missed doses recorded.</p>;
+              }
+              const tally: Record<string, number> = {};
+              missedLogs.forEach((log: any) => {
+                const reason = log.missedReason || 'No reason provided';
+                tally[reason] = (tally[reason] || 0) + 1;
+              });
+              return (
+                <ul className="space-y-2">
+                  {Object.entries(tally).map(([reason, count]) => (
+                    <li key={reason} className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
+                      <span className="text-slate-700 font-medium">{reason}</span>
+                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold text-xs">{count}</span>
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
+          </section>
+
           {/* AI Insights & Alerts */}
           <section>
             <h3 className="text-lg font-bold border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider flex items-center gap-2 text-slate-800">

@@ -19,6 +19,8 @@ export const SymptomSchema = z.object({
 export const MedicationSchema = z.object({
   patientId: z.string(),
   name: z.string().min(1),
+  dosage: z.string().optional(),
+  frequency: z.string().optional(),
 });
 
 export const MedicationLogSchema = z.object({
@@ -26,6 +28,7 @@ export const MedicationLogSchema = z.object({
   medicationId: z.string(),
   status: z.enum(["taken", "missed", "skipped"]),
   notes: z.string().optional(),
+  missedReason: z.string().optional(),
   takenAt: z.string().datetime().optional(),
 });
 

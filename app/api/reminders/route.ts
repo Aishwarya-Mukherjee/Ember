@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 export async function PUT(req: Request) {
   try {
-    const { id, status, scheduledAt, medicationId, notes } = await req.json();
+    const { id, status, scheduledAt, medicationId, notes, missedReason } = await req.json();
 
     if (!id) {
       return NextResponse.json({ error: "Missing reminder ID" }, { status: 400 });
@@ -25,19 +25,29 @@ export async function PUT(req: Request) {
       data: updateData,
     });
 
-    // If a medication reminder was marked as done or missed, and we have medicationId, log it
+    // If a medication reminder was marked as done or missed, log it
     if (updatedReminder.type === 'medication' && (status === 'done' || status === 'missed' || status === 'skipped')) {
-      // Need to find the medicationId if not passed explicitly? 
-      // For MVP, we assume the frontend passes medicationId, or we try to extract it from the label if possible.
-      // Better yet, if medicationId is provided:
-      if (medicationId) {
+      let targetMedicationId = medicationId;
+      if (!targetMedicationId) {
+        // Fallback: try to find the medication by matching the label
+        const med = await prisma.medication.findFirst({
+          where: { 
+            patientId: updatedReminder.patientId, 
+            name: { equals: updatedReminder.label, mode: 'insensitive' } 
+          }
+        });
+        if (med) targetMedicationId = med.id;
+      }
+      
+      if (targetMedicationId) {
         await prisma.medicationLog.create({
           data: {
             patientId: updatedReminder.patientId,
-            medicationId,
+            medicationId: targetMedicationId,
             status: status === 'done' ? 'taken' : status,
             takenAt: new Date(),
             notes: notes || 'Logged via Smart Reminder',
+            missedReason: status === 'missed' ? missedReason : undefined,
           }
         });
       }
