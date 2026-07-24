@@ -19,6 +19,16 @@ import { AppointmentsTab } from "@/components/tabs/AppointmentsTab";
 import { CheckInTab } from "@/components/tabs/CheckInTab";
 import { ReportsTab } from "@/components/tabs/ReportsTab";
 import { CareCircleTab } from "@/components/tabs/CareCircleTab";
+import { useUser } from "@/components/UserProvider";
+import { CaregiverDashboard } from "@/components/CaregiverDashboard";
+import { CaregiverPatientDetail } from "@/components/CaregiverPatientDetail";
+import { CaregiverHealthTrends } from "@/components/caregiver/CaregiverHealthTrends";
+import { CaregiverAlerts } from "@/components/caregiver/CaregiverAlerts";
+import { CaregiverMedTracker } from "@/components/caregiver/CaregiverMedTracker";
+import { CaregiverDailyLog } from "@/components/caregiver/CaregiverDailyLog";
+import { CaregiverEmergencyInfo } from "@/components/caregiver/CaregiverEmergencyInfo";
+import { CaregiverPatientsList } from "@/components/caregiver/CaregiverPatientsList";
+
 
 const Sparkline = ({ data, color }: { data: number[], color: string }) => (
   <div className="h-8 mt-2 -mx-1">
@@ -40,9 +50,12 @@ const GlassPanel = ({ children, className = "" }: { children: React.ReactNode, c
 );
 
 function DashboardContent() {
-  const { data: patientData, error: patientError, isLoading: patientLoading, mutate: mutatePatient } = useSWR<AppData>('/api/patients/patient_001', fetcher);
-  const { data: vitalsData, error: vitalsError, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR<VitalsEntry[]>('/api/vitals?patientId=patient_001', fetcher);
-  const { data: symptomsData, error: symptomsError, isLoading: symptomsLoading, mutate: mutateSymptoms } = useSWR<SymptomLog[]>('/api/symptoms?patientId=patient_001', fetcher);
+  const { activeProfile, activePatientId, setActivePatientId } = useUser();
+  const fetchPatientId = activePatientId || 'patient_001';
+
+  const { data: patientData, error: patientError, isLoading: patientLoading, mutate: mutatePatient } = useSWR<AppData>(`/api/patients/${fetchPatientId}`, fetcher);
+  const { data: vitalsData, error: vitalsError, isLoading: vitalsLoading, mutate: mutateVitals } = useSWR<VitalsEntry[]>(`/api/vitals?patientId=${fetchPatientId}`, fetcher);
+  const { data: symptomsData, error: symptomsError, isLoading: symptomsLoading, mutate: mutateSymptoms } = useSWR<SymptomLog[]>(`/api/symptoms?patientId=${fetchPatientId}`, fetcher);
 
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -56,9 +69,62 @@ function DashboardContent() {
   const [vitalHR, setVitalHR] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState<"patient" | "caregiver">("patient");
 
   // Prevent crashes on initial load
+  
+  if (activeProfile.role === "caregiver") {
+    let caregiverTabs = ["health-trends", "cg-alerts", "med-tracker", "daily-log", "emergency", "my-patients"];
+    
+    if (activePatientId) {
+      caregiverTabs = caregiverTabs.filter(t => t !== "my-patients");
+    }
+
+    if (caregiverTabs.includes(tab)) {
+      return (
+        <div className="min-h-screen relative overflow-y-auto bg-slate-50 p-4 md:p-8">
+          {tab === "health-trends" ? (
+            <CaregiverHealthTrends />
+          ) : tab === "cg-alerts" ? (
+            <CaregiverAlerts />
+          ) : tab === "med-tracker" ? (
+            <CaregiverMedTracker />
+          ) : tab === "daily-log" ? (
+            <CaregiverDailyLog />
+          ) : tab === "emergency" ? (
+            <CaregiverEmergencyInfo />
+          ) : tab === "my-patients" ? (
+            <CaregiverPatientsList />
+          ) : null}
+        </div>
+      );
+    }
+
+    if (!activePatientId) {
+      return (
+        <div className="min-h-screen relative overflow-y-auto bg-slate-50 p-4 md:p-8">
+          <CaregiverDashboard />
+        </div>
+      );
+    }
+    
+    if (patientLoading) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500">
+          <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="font-bold">Loading patient record...</p>
+        </div>
+      );
+    }
+    
+    if (patientData) {
+      return (
+        <div className="min-h-screen relative overflow-y-auto bg-slate-50 p-4 md:p-8">
+          <CaregiverPatientDetail patientData={patientData} />
+        </div>
+      );
+    }
+  }
+
   const safeData: AppData = patientData || ({} as AppData);
   const allAlerts = safeData.alerts || [];
   const riskAlerts = allAlerts.filter(a => a.severity !== 'wellness');
@@ -247,27 +313,12 @@ function DashboardContent() {
         <div className="hidden md:flex justify-between items-start mb-8 w-full max-w-7xl mx-auto">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              Good morning, {safeData.patient?.name || 'Guest'}
+              Good morning, {safeData.name || 'Guest'}
             </h1>
             <p className="text-slate-500 font-medium mt-1">Here&apos;s your health overview for today</p>
           </div>
 
           <div className="flex items-center gap-4">
-            {/* View Mode Toggle */}
-            <div className="hidden md:flex items-center bg-white/50 backdrop-blur-xl p-1 rounded-xl border border-white/80 shadow-sm mr-2">
-              <button
-                onClick={() => setViewMode("patient")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${viewMode === "patient" ? "bg-white text-cyan-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-              >
-                Patient
-              </button>
-              <button
-                onClick={() => setViewMode("caregiver")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${viewMode === "caregiver" ? "bg-white text-cyan-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-              >
-                Caregiver
-              </button>
-            </div>
             
             <button
               onClick={() => window.open("/report/print", "_blank")}
@@ -317,10 +368,10 @@ function DashboardContent() {
 
         {/* 3-Column Layout */}
         {tab === "dashboard" ? (
-          <div className={`flex-1 flex flex-col xl:grid ${viewMode === "caregiver" ? "xl:grid-cols-2" : "xl:grid-cols-12"} gap-6 max-w-7xl mx-auto w-full`}>
+          <div className={`flex-1 flex flex-col xl:grid xl:grid-cols-12 gap-6 max-w-7xl mx-auto w-full`}>
 
             {/* LEFT COLUMN */}
-            <div className={`w-full ${viewMode === "caregiver" ? "xl:col-span-1" : "xl:col-span-3"} flex flex-col gap-6`}>
+            <div className={`w-full xl:col-span-3 flex flex-col gap-6`}>
 
               {/* Health Score */}
               <GlassPanel>
@@ -360,7 +411,6 @@ function DashboardContent() {
               </GlassPanel>
 
               {/* Today's Progress */}
-              {viewMode === "patient" && (
               <GlassPanel className="flex-1">
                 <h3 className="font-bold text-slate-800 mb-4">Today&apos;s Progress</h3>
                 <div className="space-y-4">
@@ -387,14 +437,16 @@ function DashboardContent() {
                   </div>
                 </div>
               </GlassPanel>
-              )}
             </div>
 
             {/* CENTER COLUMN */}
-            {viewMode === "patient" && (
             <div className="w-full xl:col-span-6 flex flex-col items-center justify-start pt-32 xl:pt-48 min-h-[400px] xl:min-h-[500px]">
               <div className="relative w-full flex flex-col items-center">
-                <DoctorCanvas onSelectAction={(act) => setActiveModal(act)} />
+                <DoctorCanvas 
+                  onSelectAction={(act) => setActiveModal(act)} 
+                  patientName={safeData.name}
+                  statusText={topAlert ? `I noticed an alert regarding your ${topAlert.rule.replace(/_/g, ' ')}.` : "Everything looks stable."}
+                />
 
                 {/* Arc Buttons */}
                 <div className="relative mt-[-20px] flex gap-4 z-40">
@@ -425,10 +477,9 @@ function DashboardContent() {
                 </div>
               </div>
             </div>
-            )}
 
             {/* RIGHT COLUMN */}
-            <div className={`w-full ${viewMode === "caregiver" ? "xl:col-span-1" : "xl:col-span-3"} flex flex-col gap-6 mt-12 xl:mt-0`}>
+            <div className={`w-full xl:col-span-3 flex flex-col gap-6 mt-12 xl:mt-0`}>
 
               {/* Vitals Overview */}
               <GlassPanel>

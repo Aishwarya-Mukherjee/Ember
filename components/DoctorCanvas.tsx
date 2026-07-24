@@ -6,16 +6,21 @@ import { X, Sparkles, CheckSquare, Pill, Activity, MessageSquare } from "lucide-
 interface DoctorCanvasProps {
   onListeningChange?: (listening: boolean) => void;
   onSelectAction?: (action: string) => void;
+  patientName?: string;
+  statusText?: string;
 }
 
-export default function DoctorCanvas({ onListeningChange, onSelectAction }: DoctorCanvasProps) {
+export default function DoctorCanvas({ onListeningChange, onSelectAction, patientName = "there", statusText = "Everything looks stable." }: DoctorCanvasProps) {
   const [listening, setListening] = useState(false);
   const [tapping, setTapping] = useState(false);
 
   // Bubble states
   const [bubbleState, setBubbleState] = useState<'hidden' | 'entering' | 'typing' | 'done'>('hidden');
   const [displayedText, setDisplayedText] = useState("");
-  const fullText = "Hi Meera,\n\nI'm Ember, your AI Health Companion.\n\nI've analyzed today's health summary.\n\nEverything looks stable.\nWould you like to do a quick check-in?";
+  
+  // Construct dynamic AI text based on patient data
+  const firstName = patientName.split(" ")[0];
+  const fullText = `Hi ${firstName},\n\nI'm Ember, your AI Health Companion.\n\nI've analyzed today's health summary.\n\n${statusText}\nWould you like to do a quick check-in?`;
 
   const handleChipClick = (actionText: string) => {
     setDisplayedText(`Got it! Opening ${actionText} mode...`);

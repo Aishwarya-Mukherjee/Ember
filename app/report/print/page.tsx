@@ -5,11 +5,13 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { AppData, VitalsEntry, SymptomLog } from "@/lib/types";
 import { Flame, Activity, Stethoscope, AlertTriangle } from "lucide-react";
+import { useUser } from "@/components/UserProvider";
 
 export default function PrintReportPage() {
-  const { data: patientData, isLoading: patientLoading } = useSWR<AppData>('/api/patients/patient_001', fetcher);
-  const { data: vitalsData, isLoading: vitalsLoading } = useSWR<VitalsEntry[]>('/api/vitals?patientId=patient_001', fetcher);
-  const { data: symptomsData, isLoading: symptomsLoading } = useSWR<SymptomLog[]>('/api/symptoms?patientId=patient_001', fetcher);
+  const { activePatientId } = useUser();
+  const { data: patientData, isLoading: patientLoading } = useSWR<AppData>(`/api/patients/${activePatientId}`, fetcher);
+  const { data: vitalsData, isLoading: vitalsLoading } = useSWR<VitalsEntry[]>(`/api/vitals?patientId=${activePatientId}`, fetcher);
+  const { data: symptomsData, isLoading: symptomsLoading } = useSWR<SymptomLog[]>(`/api/symptoms?patientId=${activePatientId}`, fetcher);
 
   useEffect(() => {
     // Automatically open the print dialog when all data is loaded
@@ -31,7 +33,7 @@ export default function PrintReportPage() {
   const alerts = patientData.alerts || [];
   const vitals = vitalsData || [];
   const symptoms = symptomsData || [];
-  const medications = patientData.patient?.medications || [];
+  const medications = patientData.medications || [];
 
   return (
     <div className="bg-white min-h-screen text-black w-full max-w-4xl mx-auto p-8 md:p-12" style={{ WebkitPrintColorAdjust: 'exact', colorAdjust: 'exact' }}>

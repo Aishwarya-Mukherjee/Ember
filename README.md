@@ -63,7 +63,7 @@ Over **60% of adults** live with at least one chronic condition (diabetes, hyper
 | **Styling & Design System** | Custom Liquid Glass design system, [Tailwind CSS v4](https://tailwindcss.com), Framer Motion |
 | **Interactive 3D & Graphics** | Three.js, `@react-three/fiber`, `@react-three/drei` |
 | **Icons & UI Components** | Lucide React, Radix UI primitives (`@base-ui/react`), Shadcn UI |
-| **AI & Pattern Analysis** | Anthropic AI SDK (`@anthropic-ai/sdk`), Rule-based Risk Engine |
+| **AI & Pattern Analysis** | Google Gemini SDK (`@google/genai`), Rule-based Risk Engine |
 | **Language & Tooling** | TypeScript 5, ESLint 9 |
 
 ---
@@ -143,7 +143,7 @@ Create a `.env.local` file at the root of the project:
 
 ```bash
 DATABASE_URL="postgres://user:password@host:port/database"
-ANTHROPIC_API_KEY="your-anthropic-key-here"
+GEMINI_API_KEY="your-gemini-key-here"
 ```
 
 > **Security Note:** Never commit actual secrets. See `.env.example` for the required schema.
@@ -177,7 +177,7 @@ Ember is designed for zero-config deployment on [Vercel](https://vercel.com).
 1. Import the repository into your Vercel Dashboard.
 2. Navigate to **Settings > Environment Variables** and inject the following:
    - `DATABASE_URL` (Points to your production PostgreSQL like Supabase or Neon)
-   - `ANTHROPIC_API_KEY`
+   - `GEMINI_API_KEY`
 3. Under **Build & Development Settings**, Vercel will automatically run `npm run build`.
 4. **IMPORTANT: Database Migrations in Production**
    Do NOT use `prisma db push` or `prisma migrate dev` in production. Instead, run:

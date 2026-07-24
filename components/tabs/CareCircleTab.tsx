@@ -1,10 +1,12 @@
 import React from "react";
 import { Users, UserPlus, Heart, Stethoscope, AlertTriangle } from "lucide-react";
 import { AppData } from "@/lib/types";
+import { useUser } from "@/components/UserProvider";
 
 export function CareCircleTab({ patientData }: { patientData: AppData }) {
+  const { activePatientId } = useUser();
   // Mock Care Circle Members for MVP based on patient data
-  const careCircle = [
+  const careCircle = activePatientId === "patient_001" ? [
     {
       id: 1,
       name: "Arun Sharma",
@@ -22,6 +24,16 @@ export function CareCircleTab({ patientData }: { patientData: AppData }) {
       icon: Stethoscope,
       color: "bg-cyan-100 text-cyan-600",
       iconColor: "text-cyan-500",
+    }
+  ] : [
+    {
+      id: 3,
+      name: "Emily Davis",
+      role: "Primary Caregiver",
+      relationship: "Nurse",
+      icon: Heart,
+      color: "bg-purple-100 text-purple-600",
+      iconColor: "text-purple-500",
     }
   ];
 
@@ -57,7 +69,7 @@ export function CareCircleTab({ patientData }: { patientData: AppData }) {
                     <div>
                       <h4 className="font-bold text-orange-900 text-sm">Caregiver Notification Triggered</h4>
                       <p className="text-orange-800 text-sm mt-0.5">
-                        ⚠️ <strong>Arun Sharma</strong> would be notified: <strong>{reminder.text}</strong> missed {reminder.missedCount}x in a row.
+                        ⚠️ <strong>{careCircle[0].name}</strong> would be notified: <strong>{reminder.text}</strong> missed {reminder.missedCount}x in a row.
                       </p>
                     </div>
                   </div>
