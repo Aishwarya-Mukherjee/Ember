@@ -12,7 +12,10 @@ export const meera: Patient = {
   name: "Meera",
   age: 58,
   condition: "diabetes",
-  medications: ["Metformin 500mg", "Lisinopril 10mg"],
+  medications: [
+    { id: "med-1", name: "Metformin 500mg" },
+    { id: "med-2", name: "Lisinopril 10mg" }
+  ],
 };
 
 export const seedSymptoms: SymptomLog[] = [

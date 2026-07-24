@@ -3,7 +3,7 @@ export type Patient = {
   name: string;
   age: number;
   condition: "diabetes" | "hypertension" | "asthma" | "heart_disease";
-  medications: string[];
+  medications: { id: string; name: string }[];
   caregiverId?: string;
 };
 
@@ -40,7 +40,7 @@ export type RiskAlert = {
   patientId: string;
   triggeredAt: string; // ISO string
   rule: string;
-  severity: "warning" | "critical";
+  severity: "warning" | "critical" | "wellness";
   insight: string;
   dismissed: boolean;
 };

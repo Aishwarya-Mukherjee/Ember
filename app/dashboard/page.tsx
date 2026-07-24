@@ -247,7 +247,7 @@ function DashboardContent() {
         <div className="hidden md:flex justify-between items-start mb-8 w-full max-w-7xl mx-auto">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              Good morning, {safeData.name || 'Guest'}
+              Good morning, {safeData.patient?.name || 'Guest'}
             </h1>
             <p className="text-slate-500 font-medium mt-1">Here&apos;s your health overview for today</p>
           </div>

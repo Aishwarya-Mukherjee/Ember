@@ -50,7 +50,7 @@ const Counter = ({ value }: { value: number }) => {
   return <motion.span>{rounded}</motion.span>;
 };
 
-const MagneticButton = ({ children, className, primary = false, onClick }: { children: React.ReactNode, className?: string, primary?: boolean, onClick?: () => void }) => {
+const MagneticButton = ({ children, className, primary = false, onClick }: { children: React.ReactNode, className?: string, primary?: boolean, onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void }) => {
   const ref = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);

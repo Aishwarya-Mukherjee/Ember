@@ -3,7 +3,7 @@ import { Pill } from "lucide-react";
 import { AppData } from "@/lib/types";
 
 export function MedicationsTab({ patientData }: { patientData: AppData }) {
-  const medications = patientData?.medications || [];
+  const medications = patientData?.patient?.medications || [];
 
   return (
     <div className="flex-1 w-full max-w-5xl mx-auto space-y-6">

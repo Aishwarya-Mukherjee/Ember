@@ -31,7 +31,7 @@ export default function PrintReportPage() {
   const alerts = patientData.alerts || [];
   const vitals = vitalsData || [];
   const symptoms = symptomsData || [];
-  const medications = patientData.medications || [];
+  const medications = patientData.patient?.medications || [];
 
   return (
     <div className="bg-white min-h-screen text-black w-full max-w-4xl mx-auto p-8 md:p-12" style={{ WebkitPrintColorAdjust: 'exact', colorAdjust: 'exact' }}>
