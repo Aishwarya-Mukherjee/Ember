@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { generateAlertInsight, generateWellnessTip } from '@/lib/server/anthropic';
+import { generateAlertInsight, generateWellnessTip } from '@/lib/server/ai';
 
 /**
  * Ensures an alert is only created if there isn't an active one of the same rule for this patient.

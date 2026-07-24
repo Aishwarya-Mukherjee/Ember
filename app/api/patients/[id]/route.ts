@@ -17,6 +17,10 @@ export async function GET(
       where: { id },
       include: {
         medications: true,
+        vitals: {
+          orderBy: { timestamp: 'desc' },
+          take: 5
+        },
         alerts: {
           orderBy: { triggeredAt: 'desc' },
           take: 5
@@ -24,6 +28,10 @@ export async function GET(
         symptoms: {
           orderBy: { timestamp: 'desc' },
           take: 5
+        },
+        checkIns: {
+          orderBy: { date: 'desc' },
+          take: 10
         },
         reminders: true,
       }

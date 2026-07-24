@@ -12,8 +12,8 @@
     "prisma:seed": "prisma db seed"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.112.3",
     "@base-ui/react": "^1.6.0",
+    "@google/genai": "^2.13.0",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.9.0",
     "@prisma/adapter-pg": "^7.9.0",

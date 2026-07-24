@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getAnthropicClient } from "@/lib/server/anthropic";
+import { generateAdaptiveSchedule } from "@/lib/server/ai";
 
 export async function POST(req: Request) {
   try {
@@ -48,25 +48,11 @@ Output exactly a JSON array of objects with this schema, and nothing else:
 ]
     `;
 
-    const anthropic = getAnthropicClient();
-    const response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 1000,
-      system: "You output only strictly valid JSON arrays.",
-      messages: [{ role: "user", content: prompt }]
-    });
-
-    const content = (response.content[0] as any).text;
-    
-    // Parse the JSON array
     let suggestedSchedule = [];
     try {
-      const start = content.indexOf('[');
-      const end = content.lastIndexOf(']');
-      const jsonStr = content.slice(start, end + 1);
-      suggestedSchedule = JSON.parse(jsonStr);
+      suggestedSchedule = await generateAdaptiveSchedule(prompt);
     } catch (err) {
-      console.error("Failed to parse AI JSON:", content);
+      console.error("Failed to generate adaptive schedule via AI:", err);
       return NextResponse.json({ error: "Failed to generate schedule" }, { status: 500 });
     }
 

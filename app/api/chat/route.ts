@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { extractHealthDataFromText } from '@/lib/server/anthropic';
+import { extractHealthDataFromText } from '@/lib/server/ai';
 import { evaluatePatientRisk } from '@/lib/server/riskEngine';
 import { processMedicationAdherence } from '@/lib/server/adherence';
 import { requireOwnership, UnauthorizedError, ForbiddenError } from '@/lib/server/auth';
